@@ -1,0 +1,13 @@
+TODO:
+
+lock image positions when photo collage is open
+
+Actions
+	get comments, bring in new people from sn network
+	expand social network
+
+Get buttons for photo collage working
+
+Center objects when created
+
+Create a queue of network objects and close stale objects to open new ones

@@ -11,7 +11,7 @@ import ca.shu.ui.chameleon.adapters.IPhoto;
 public interface IStreamingPhotoHolder {
 	public boolean addPhoto(IPhoto photo);
 	
-	public void removePhoto(GPhoto photo);
+	public void removePhoto(Photo photo);
 	
 	public void setSourceState(SourceState state);
 	

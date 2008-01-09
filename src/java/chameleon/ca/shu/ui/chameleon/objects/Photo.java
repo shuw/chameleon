@@ -22,7 +22,7 @@ import edu.umd.cs.piccolo.nodes.PImage;
 import edu.umd.cs.piccolo.nodes.PText;
 import edu.umd.cs.piccolox.handles.PBoundsHandle;
 
-public class GPhoto extends ModelObject implements Interactable {
+public class Photo extends ModelObject implements Interactable {
 	/**
 	 * 
 	 */
@@ -42,7 +42,7 @@ public class GPhoto extends ModelObject implements Interactable {
 
 	private IPhoto proxy;
 
-	public GPhoto(IPhoto photoWr) {
+	public Photo(IPhoto photoWr) {
 		super(photoWr);
 		this.proxy = photoWr;
 
@@ -135,7 +135,7 @@ public class GPhoto extends ModelObject implements Interactable {
 				loadingText.setFont(Style.FONT_XLARGE);
 				loadingText.setPaint(Style.COLOR_BACKGROUND);
 				loadingText.setTextPaint(Style.COLOR_FOREGROUND);
-				GPhoto.this.addChild(loadingText);
+				Photo.this.addChild(loadingText);
 
 			}
 		});
@@ -179,10 +179,10 @@ public class GPhoto extends ModelObject implements Interactable {
 				imageHolder.removeAllChildren();
 				imageHolder.addChild(image);
 
-				synchronized (GPhoto.this) {
-					GPhoto.this.setBounds(GPhoto.this.globalToLocal(image
+				synchronized (Photo.this) {
+					Photo.this.setBounds(Photo.this.globalToLocal(image
 							.localToGlobal(image.getBounds())));
-					GPhoto.this.notifyAll();
+					Photo.this.notifyAll();
 				}
 			}
 		});
@@ -263,9 +263,9 @@ public class GPhoto extends ModelObject implements Interactable {
 }
 
 class PhotoEventHandler extends PBasicInputEventHandler {
-	GPhoto photo;
+	Photo photo;
 
-	public PhotoEventHandler(GPhoto object) {
+	public PhotoEventHandler(Photo object) {
 		super();
 		this.photo = object;
 	}

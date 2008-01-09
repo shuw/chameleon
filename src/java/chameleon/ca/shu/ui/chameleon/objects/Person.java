@@ -1,14 +1,15 @@
-package ca.shu.ui.chameleon.adapters.flickr;
+package ca.shu.ui.chameleon.objects;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IUser;
-import ca.shu.ui.chameleon.objects.PhotoCollage;
+import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
 import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
+import ca.shu.ui.lib.objects.RectangularEdge;
 import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
 import ca.shu.ui.lib.world.Interactable;
@@ -17,17 +18,18 @@ import com.aetrion.flickr.people.User;
 
 import edu.umd.cs.piccolo.nodes.PImage;
 
-public class FlickrUser extends ModelObject implements IUser, Interactable {
+public class Person extends ModelObject implements IUser, Interactable {
 
 	private static final long serialVersionUID = 1L;
 
 	private PImage profileImage;
 
-	public FlickrUser(User user) {
+	public Person(User user) {
 		super(user);
-		setChildrenPickable(false);
+
 		try {
 			profileImage = new PImage(new URL(user.getBuddyIconUrl()));
+			profileImage.setPickable(false);
 			profileImage.setOffset(-profileImage.getWidth() / 2f, -profileImage
 					.getWidth() / 2f);
 
@@ -44,8 +46,13 @@ public class FlickrUser extends ModelObject implements IUser, Interactable {
 	@Override
 	protected void constructMenu(PopupMenuBuilder menu) {
 		super.constructMenu(menu);
+		ChameleonMenus.constructMenu(this, menu);
 
-		menu.addAction(new OpenPhotosAction());
+		if (!isPhotosEnabled()) {
+			menu.addAction(new SetPhotosEnabledAction("Show photos", true));
+		} else {
+			menu.addAction(new SetPhotosEnabledAction("Hide photos", true));
+		}
 	}
 
 	public String getId() {
@@ -79,24 +86,51 @@ public class FlickrUser extends ModelObject implements IUser, Interactable {
 		return getModel().getUsername();
 	}
 
-	public void openPhotos() {
-		IStreamingPhotoSource flickrPhotos = FlickrPhotoSource
-				.createUserSource(getModel().getUsername());
-		PhotoCollage collage = new PhotoCollage(flickrPhotos);
-		addChild(collage);
+	private PhotoCollage myPhotoCollage = null;
+	private RectangularEdge collageShadow = null;
+
+	public boolean isPhotosEnabled() {
+		if (myPhotoCollage != null) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
-	class OpenPhotosAction extends StandardAction {
+	public void setPhotosEnabled(boolean enabled) {
+		if (enabled) {
+			if (myPhotoCollage == null) {
+
+				IStreamingPhotoSource flickrPhotos = FlickrPhotoSource
+						.createUserSource(getModel().getId(), true);
+				PhotoCollage collage = new PhotoCollage(flickrPhotos);
+				collage.setScale(0.5f);
+				addChild(collage);
+				collageShadow = new RectangularEdge(this, collage);
+				addChild(0, collageShadow);
+			}
+		} else {
+			if (myPhotoCollage != null) {
+				myPhotoCollage.destroy();
+				collageShadow.destroy();
+				myPhotoCollage = null;
+			}
+		}
+	}
+
+	class SetPhotosEnabledAction extends StandardAction {
 
 		private static final long serialVersionUID = 1L;
+		private boolean enabled;
 
-		public OpenPhotosAction() {
+		public SetPhotosEnabledAction(String description, boolean enabled) {
 			super("Open photos");
+			this.enabled = enabled;
 		}
 
 		@Override
 		protected void action() throws ActionException {
-			openPhotos();
+			setPhotosEnabled(enabled);
 		}
 
 	}

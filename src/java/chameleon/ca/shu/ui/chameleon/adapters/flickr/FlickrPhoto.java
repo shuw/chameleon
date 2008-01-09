@@ -9,6 +9,7 @@ import java.util.List;
 
 import ca.shu.ui.chameleon.adapters.IPhoto;
 
+import com.aetrion.flickr.Flickr;
 import com.aetrion.flickr.FlickrException;
 import com.aetrion.flickr.people.User;
 import com.aetrion.flickr.photos.Exif;
@@ -16,6 +17,7 @@ import com.aetrion.flickr.photos.Photo;
 import com.aetrion.flickr.photos.PhotoPlace;
 import com.aetrion.flickr.photos.Size;
 import com.aetrion.flickr.photos.comments.Comment;
+import com.aetrion.flickr.photos.comments.CommentsInterface;
 
 public class FlickrPhoto implements IPhoto, java.io.Serializable {
 
@@ -51,9 +53,13 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 
 	private String myPhotoId;
 
+	private Flickr flickrAPI;
+
 	public FlickrPhoto(String photoId) throws FlickrException {
 		super();
 		this.myPhotoId = photoId;
+		this.flickrAPI = FlickrAPI.create();
+		
 		getPhoto(); // loads the photo
 	}
 
@@ -121,7 +127,12 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	}
 
 	public String getTitle() {
-		return myPhoto.getTitle();
+		try {
+			return getPhoto().getTitle();
+		} catch (FlickrException e) {
+			e.printStackTrace();
+			return "";
+		}
 	}
 
 	public String getType() {
@@ -129,10 +140,13 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<Comment> getComments() throws FlickrException {
+	public synchronized List<Comment> getComments() throws FlickrException {
 		if (comments == null) {
 			try {
-				comments = FlickrAPI.getCommentsInterface().getList(myPhotoId);
+				CommentsInterface commentInterface = new CommentsInterface(
+						FlickrAPI.FLICKR_API_KEY, flickrAPI.getTransport());
+
+				comments = commentInterface.getList(myPhotoId);
 			} catch (FlickrException e) {
 				throw e;
 			} catch (Exception e) {
@@ -144,11 +158,11 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<PhotoPlace> getContexts() throws FlickrException {
+	public synchronized List<PhotoPlace> getContexts() throws FlickrException {
 		if (contexts == null) {
 			try {
-				contexts = FlickrAPI.getInterfaces().getPhotosInterface()
-						.getAllContexts(myPhotoId);
+				contexts = flickrAPI.getPhotosInterface().getAllContexts(
+						myPhotoId);
 			} catch (FlickrException e) {
 				throw e;
 			} catch (Exception e) {
@@ -159,11 +173,11 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Collection<Exif> getExifs() throws FlickrException {
+	public synchronized Collection<Exif> getExifs() throws FlickrException {
 		if (exifs == null) {
 			try {
-				exifs = FlickrAPI.getInterfaces().getPhotosInterface().getExif(
-						myPhotoId, getPhoto().getSecret());
+				exifs = flickrAPI.getPhotosInterface().getExif(myPhotoId,
+						getPhoto().getSecret());
 			} catch (FlickrException e) {
 				throw e;
 			} catch (Exception e) {
@@ -174,11 +188,11 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Collection<User> getFavorites() throws FlickrException {
+	public synchronized Collection<User> getFavorites() throws FlickrException {
 		if (favorites == null) {
 			try {
-				favorites = FlickrAPI.getInterfaces().getPhotosInterface()
-						.getFavorites(myPhotoId, 30, 1);
+				favorites = flickrAPI.getPhotosInterface().getFavorites(
+						myPhotoId, 30, 1);
 			} catch (FlickrException e) {
 				throw e;
 			} catch (Exception e) {
@@ -188,11 +202,10 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 		return favorites;
 	}
 
-	public Photo getPhoto() throws FlickrException {
+	public synchronized Photo getPhoto() throws FlickrException {
 		if (myPhoto == null) {
 			try {
-				myPhoto = FlickrAPI.getInterfaces().getPhotosInterface()
-						.getInfo(myPhotoId, "");
+				myPhoto = flickrAPI.getPhotosInterface().getInfo(myPhotoId, "");
 			} catch (FlickrException e) {
 				throw e;
 			} catch (Exception e) {
@@ -203,11 +216,10 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Collection<Size> getSizes() throws FlickrException {
+	public synchronized Collection<Size> getSizes() throws FlickrException {
 		if (sizes == null) {
 			try {
-				sizes = FlickrAPI.getInterfaces().getPhotosInterface()
-						.getSizes(myPhotoId);
+				sizes = flickrAPI.getPhotosInterface().getSizes(myPhotoId);
 			} catch (FlickrException e) {
 				throw e;
 			} catch (Exception e) {

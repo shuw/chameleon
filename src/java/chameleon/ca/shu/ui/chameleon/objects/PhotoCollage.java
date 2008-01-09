@@ -5,13 +5,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Stack;
 
-import javax.swing.SwingUtilities;
-
 import ca.shu.ui.chameleon.adapters.IPhoto;
 import ca.shu.ui.chameleon.adapters.IPhotoSourceException;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.SourceEmptyException;
 import ca.shu.ui.lib.Style.Style;
+import ca.shu.ui.lib.actions.ActionException;
+import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.activities.Fader;
 import ca.shu.ui.lib.objects.Border;
 import ca.shu.ui.lib.objects.models.ModelObject;
@@ -22,12 +22,20 @@ import ca.shu.ui.lib.world.WorldObject;
 import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.activities.PActivity;
 
-/*
- * Wraps the collage and its interface
+/**
+ * Photo Collage
+ * 
+ * @author Shu Wu
  */
 public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 
+	private static final int MAXIMUM_WIDTH = 2500;
+
+	private static final int MINIMUM_WIDTH = 200;
+
 	private static final long serialVersionUID = 1L;
+
+	private static final int WIDTH_INTERVAL = 400;
 
 	private boolean autoScrollEnabled = true;
 
@@ -37,7 +45,7 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 
 	private IStreamingPhotoSource photoSource;
 
-	private int scrollIntervalMs = 1000;
+	private int scrollDelayMs = 1000;
 
 	public PhotoCollage(IStreamingPhotoSource photoSource) {
 		this(photoSource, 1200, 1200);
@@ -46,6 +54,7 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 	public PhotoCollage(IStreamingPhotoSource photoSource, double collageWidth,
 			double collageHeight) {
 		super(photoSource);
+		setPaint(Style.COLOR_BACKGROUND);
 
 		this.photoSource = photoSource;
 
@@ -60,13 +69,90 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 		setAutoScroll(true);
 	}
 
-	public boolean addPhoto(IPhoto photo) {
-		return collage.addPhoto(photo);
+	private boolean canChangeScrollSpeed(boolean positive) {
+		return true;
+	}
+
+	private boolean canChangeSize(boolean positive) {
+		if (positive) {
+			if (getWidth() + WIDTH_INTERVAL < MAXIMUM_WIDTH) {
+				return true;
+			}
+
+		} else {
+			if (getWidth() - WIDTH_INTERVAL > MINIMUM_WIDTH) {
+				return true;
+			}
+		}
+		return false;
 
 	}
 
-	public void decreaseScrollSpeed() {
-		scrollIntervalMs += 400;
+	private void changeScrollSpeed(boolean positive) {
+		if (positive) {
+			scrollDelayMs -= 400;
+
+			if (scrollDelayMs <= 0) {
+				scrollDelayMs = 0;
+			}
+		} else {
+			scrollDelayMs += 400;
+		}
+
+	}
+
+	private void changeSize(boolean positive) {
+		if (canChangeSize(positive)) {
+			if (positive) {
+				setCollageWidth(getWidth() + WIDTH_INTERVAL);
+			} else {
+				setCollageWidth(getWidth() - WIDTH_INTERVAL);
+			}
+		}
+	}
+
+	@Override
+	protected void constructMenu(PopupMenuBuilder menu) {
+		super.constructMenu(menu);
+		ChameleonMenus.constructMenu(this, menu);
+
+		if (canChangeSize(true)) {
+			menu.addAction(new ChangeSizeAction("+ Width", true));
+		}
+
+		if (canChangeSize(false)) {
+			menu.addAction(new ChangeSizeAction("- Width", false));
+		}
+
+		if (isAutoScrollEnabled()) {
+
+			if (canChangeScrollSpeed(true)) {
+				menu.addAction(new ChangeScrollSpeedAction("+ Scroll Speed",
+						true));
+			}
+			if (canChangeScrollSpeed(false)) {
+				menu.addAction(new ChangeScrollSpeedAction("- Scroll Speed",
+						false));
+			}
+
+			menu.addAction(new SetAutoScrollAction("Stop scrolling", false));
+		} else {
+			menu.addAction(new SetAutoScrollAction("Stop scrolling", true));
+		}
+
+		// addButton(new GButton("Get next " + getPhotosNum + " Photos",
+		// new Runnable() {
+		// public void run() {
+		//
+		// collage.getMorePhotos(getPhotosNum);
+		// }
+		// }));
+
+	}
+
+	public boolean addPhoto(IPhoto photo) {
+		return collage.addPhoto(photo);
+
 	}
 
 	public void getMorePhotos(int count) {
@@ -74,66 +160,8 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 	}
 
 	@Override
-	protected void constructMenu(PopupMenuBuilder menu) {
-		/*
-		 * TODO: Create menu
-		 */
-		// addButton(new GButton("+Width", new Runnable() {
-		// public void run() {
-		// collage.setWidthAndUpdateCollage(collage.getWidth() + 500);
-		//
-		// }
-		// }));
-		// addButton(new GButton("-Width", new Runnable() {
-		// public void run() {
-		// collage.setWidthAndUpdateCollage(collage.getWidth() - 500);
-		//
-		// }
-		// }));
-		//
-		// addButton(new GButton("+Scroll Speed", new Runnable() {
-		// public void run() {
-		// collage.increaseScrollSpeed();
-		//
-		// }
-		// }));
-		// addButton(new GButton("-Scroll Speed", new Runnable() {
-		// public void run() {
-		// collage.decreaseScrollSpeed();
-		//
-		// }
-		// }));
-		//
-		// // addButton(new GButton("Get next " + getPhotosNum + " Photos",
-		// // new Runnable() {
-		// // public void run() {
-		// //
-		// // collage.getMorePhotos(getPhotosNum);
-		// // }
-		// // }));
-		//
-		// autoScrollBtn = (TextButton) addButton(new GButton(
-		// getAutoScrollBtnText(), new Runnable() {
-		// public void run() {
-		//
-		// if (collage.isAutoScrollEnabled()) {
-		// collage.setAutoScroll(false);
-		//
-		// } else {
-		// collage.setAutoScroll(true);
-		// }
-		// autoScrollBtn.setText(getAutoScrollBtnText());
-		// }
-		// }));
-		super.constructMenu(menu);
-	}
-
-	public void increaseScrollSpeed() {
-		scrollIntervalMs -= 400;
-
-		if (scrollIntervalMs <= 0) {
-			scrollIntervalMs = 0;
-		}
+	public String getTypeName() {
+		return "Photo Collage";
 	}
 
 	public boolean isAutoScrollEnabled() {
@@ -146,12 +174,12 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 		super.prepareForDestroy();
 	}
 
-	public void removePhoto(GPhoto photo) {
+	public void removePhoto(Photo photo) {
 		collage.removePhoto(photo);
 	}
 
-	public void setAutoScroll(boolean bool) {
-		this.autoScrollEnabled = bool;
+	public void setAutoScroll(boolean enabled) {
+		this.autoScrollEnabled = enabled;
 
 		if (autoScrollEnabled) {
 			if ((autoScrollThread == null) || !autoScrollThread.isAlive()) {
@@ -171,8 +199,15 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 
 	}
 
-	public void setWidthAndUpdateCollage(double width) {
-		collage.doCollageLayout(width);
+	public void setCollageWidth(double width) {
+		Util.Assert(width >= MINIMUM_WIDTH && width <= MAXIMUM_WIDTH,
+				"Incorrect size");
+
+		collage.setWidth(width);
+
+		if (width != getParent().getWidth()) {
+			animateToBounds(getX(), getY(), width, getHeight(), 1000);
+		}
 	}
 
 	class AutoScrollThread extends Thread {
@@ -201,7 +236,7 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 				}
 
 				try {
-					Thread.sleep(scrollIntervalMs);
+					Thread.sleep(scrollDelayMs);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -210,28 +245,72 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 		}
 	}
 
-	@Override
-	public String getTypeName() {
-		return "Photo Collage";
+	class ChangeScrollSpeedAction extends StandardAction {
+		private static final long serialVersionUID = 1L;
+
+		private boolean positive;
+
+		public ChangeScrollSpeedAction(String description, boolean positive) {
+			super(description);
+			this.positive = positive;
+		}
+
+		@Override
+		protected void action() throws ActionException {
+			changeScrollSpeed(positive);
+		}
+
+	}
+
+	class ChangeSizeAction extends StandardAction {
+		private static final long serialVersionUID = 1L;
+
+		private boolean positive;
+
+		public ChangeSizeAction(String description, boolean positive) {
+			super(description);
+			this.positive = positive;
+		}
+
+		@Override
+		protected void action() throws ActionException {
+			changeSize(positive);
+		}
+	}
+
+	class SetAutoScrollAction extends StandardAction {
+		private static final long serialVersionUID = 1L;
+
+		private boolean enabled;
+
+		public SetAutoScrollAction(String description, boolean enabled) {
+			super(description);
+			this.enabled = enabled;
+		}
+
+		@Override
+		protected void action() throws ActionException {
+			setAutoScroll(enabled);
+		}
+
 	}
 }
 
 class Collage extends WorldObject {
 
-	private static final long serialVersionUID = 1L;
-
 	private static final int ADD_PHOTO_TIME_MS = 800;
+
+	private static final long serialVersionUID = 1L;
 
 	private Object animationLock = new Object();
 
-	private CollageLayoutThread collageLayoutThread = null;
-
-	private Stack<GPhoto> photoQueue;
+	private Stack<Photo> photoQueue;
 
 	public Collage() {
 		super();
 		this.setBounds(0, 0, 1500, 1500);
-		photoQueue = new Stack<GPhoto>();
+		photoQueue = new Stack<Photo>();
+		this.setPickable(false);
 
 		// Insert Photo Thread is responsible for adding new photos from the
 		// stream
@@ -239,8 +318,21 @@ class Collage extends WorldObject {
 
 	}
 
-	private void movePhotosBy(Collection<GPhoto> photos, double moveBy) {
-		for (GPhoto photo : photos) {
+	private Collection<Photo> getChildrenPhotos() {
+		Collection<Photo> photos = new ArrayList<Photo>(getChildrenCount());
+
+		Iterator<?> it = getChildrenIterator();
+		while (it.hasNext()) {
+			Object obj = it.next();
+			if (obj instanceof Photo) {
+				photos.add((Photo) obj);
+			}
+		}
+		return photos;
+	}
+
+	private void movePhotosBy(Collection<Photo> photos, double moveBy) {
+		for (Photo photo : photos) {
 			if (!photo.isSelected()) {
 				double moveTo = photo.getOffset().getY() - moveBy;
 
@@ -260,38 +352,26 @@ class Collage extends WorldObject {
 		}
 	}
 
-	private Collection<GPhoto> getChildrenPhotos() {
-		Collection<GPhoto> photos = new ArrayList<GPhoto>(getChildrenCount());
-
-		Iterator<?> it = getChildrenIterator();
-		while (it.hasNext()) {
-			Object obj = it.next();
-			if (obj instanceof GPhoto) {
-				photos.add((GPhoto) obj);
-			}
-		}
-		return photos;
-	}
-
 	/*
 	 * Inserts photos and lays them out in the correct position
 	 */
-	protected void layoutPhotos(Collection<GPhoto> photosToInsert,
-			boolean disableScroll, double insertX, double insertY) {
+	private void layoutPhotos(Collection<Photo> photosToInsert,
+			boolean resetLayout) {
 
 		double rowHeight = 0; // max Y boundary
 		double minYBound = Double.MAX_VALUE; // min Y boundary
 
-		Util.Assert(!(disableScroll && photosToInsert.size() > 0),
-				"Inserting while scrolling is disabled");
+		Collection<Photo> collagePhotos = getChildrenPhotos();
 
-		if (!disableScroll) {
-			/*
-			 * Find insert position
-			 */
-			Collection<GPhoto> collagePhotos = getChildrenPhotos();
+		/*
+		 * Find insert position
+		 */
+		double insertX = 0;
+		double insertY = 0;
 
-			for (GPhoto photo : collagePhotos) {
+		if (!resetLayout) {
+
+			for (Photo photo : collagePhotos) {
 				double photoX = photo.getOffset().getX() + photo.getWidth();
 				double photoY = photo.getOffset().getY();
 
@@ -311,34 +391,36 @@ class Collage extends WorldObject {
 					minYBound = photoY;
 				}
 			}
+		}
 
-			/*
-			 * Insert Photos
-			 */
-			for (GPhoto photo : photosToInsert) {
-				// if width exceeded, goto new row at the bottom
-				if (insertX + photo.getWidth() > this.getWidth()) {
-					insertY += rowHeight;
-					insertX = 0;
-				}
-
-				this.addChild(photo);
-
-				if (disableScroll) {
-					photo.animateToPosition(insertX, insertY, 1000);
-				} else {
-					photo.setOffset(insertX, insertY);
-					// photo.setTransparency(0);
-					addActivity(new Fader(photo, ADD_PHOTO_TIME_MS, 1f));
-				}
-
-				insertX += photo.getWidth();
-
-				if (photo.getHeight() > rowHeight) {
-					rowHeight = photo.getHeight();
-				}
+		/*
+		 * Insert Photos
+		 */
+		for (Photo photo : photosToInsert) {
+			// if width exceeded, goto new row at the bottom
+			if (insertX + photo.getWidth() > this.getWidth()) {
+				insertY += rowHeight;
+				insertX = 0;
 			}
 
+			if (resetLayout) {
+				photo.animateToPosition(insertX, insertY, 1000);
+			} else {
+				photo.setOffset(insertX, insertY);
+				photo.setTransparency(0);
+				this.addChild(photo);
+				// photo.setTransparency(0);
+				addActivity(new Fader(photo, ADD_PHOTO_TIME_MS, 1f));
+			}
+
+			insertX += photo.getWidth();
+
+			if (photo.getHeight() > rowHeight) {
+				rowHeight = photo.getHeight();
+			}
+		}
+
+		if (!resetLayout) {
 			/*
 			 * Scroll photos
 			 */
@@ -352,7 +434,7 @@ class Collage extends WorldObject {
 
 				double moveByOrg = moveBy;
 
-				for (GPhoto photo : collagePhotos) {
+				for (Photo photo : collagePhotos) {
 					if ((photo.getOffset().getY() - moveByOrg) < 0) {
 						double newMoveBy = photo.getOffset().getY()
 								+ photo.getHeight();
@@ -371,8 +453,17 @@ class Collage extends WorldObject {
 
 	}
 
-	public void addAndScrollPhotos(Collection<GPhoto> photos) {
-		layoutPhotos(photos, false, 0, 0);
+	@Override
+	protected void prepareForDestroy() {
+		synchronized (photoQueue) {
+			// wake up Insert Photo Thread so it can be destroyed
+			photoQueue.notifyAll();
+		}
+		super.prepareForDestroy();
+	}
+
+	public void addAndScrollPhotos(Collection<Photo> photos) {
+		layoutPhotos(photos, false);
 	}
 
 	public boolean addPhoto(IPhoto p) {
@@ -382,7 +473,7 @@ class Collage extends WorldObject {
 			}
 
 			// create the GPhoto object and wait for the image to load
-			GPhoto photo = new GPhoto(p);
+			Photo photo = new Photo(p);
 			synchronized (photo) {
 				try {
 					while (!photo.isImageLoaded()) {
@@ -404,69 +495,18 @@ class Collage extends WorldObject {
 		}
 	}
 
-	public void cleanUpLayout() {
-		cleanUpLayout(this.getWidth());
-	}
-
-	public void cleanUpLayout(double newWidth) {
-		Collection<GPhoto> collagePhotos = getChildrenPhotos();
-		setWidth(newWidth);
-
-		layoutPhotos(collagePhotos, true, 0, 0);
-
-		if (newWidth != getParent().getWidth()) {
-			getParent().animateToBounds(getParent().getX(), getParent().getY(),
-					newWidth, getParent().getHeight(), 1000);
-		}
-	}
-
-	public void doCollageLayout(double newWidth) {
-		if (collageLayoutThread == null) {
-			collageLayoutThread = new CollageLayoutThread(newWidth);
-			collageLayoutThread.start();
-		}
-	}
-
 	@Override
-	protected void prepareForDestroy() {
-		synchronized (photoQueue) {
-			// wake up Insert Photo Thread so it can be destroyed
-			photoQueue.notifyAll();
-		}
-		super.prepareForDestroy();
+	public boolean setWidth(double newWidth) {
+		Collection<Photo> collagePhotos = getChildrenPhotos();
+		boolean rtnValue = super.setWidth(newWidth);
+		layoutPhotos(collagePhotos, true);
+
+		return rtnValue;
+
 	}
 
-	public void removePhoto(GPhoto photo) {
+	public void removePhoto(Photo photo) {
 		this.removeChild(photo);
-	}
-
-	class CollageLayoutThread extends Thread {
-		double newWidth;
-
-		public CollageLayoutThread(double newWidth) {
-			super();
-			this.newWidth = newWidth;
-		}
-
-		@Override
-		public void run() {
-			synchronized (animationLock) {
-
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						Collage.this.cleanUpLayout(newWidth);
-
-					}
-				});
-
-				try {
-					Thread.sleep(1200);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			collageLayoutThread = null;
-		}
 	}
 
 	class InsertPhotoThread extends Thread {
@@ -483,7 +523,7 @@ class Collage extends WorldObject {
 						if (photoQueue.size() > 0) {
 							synchronized (animationLock) {
 
-								addAndScrollPhotos((Stack<GPhoto>) (photoQueue
+								addAndScrollPhotos((Stack<Photo>) (photoQueue
 										.clone()));
 								photoQueue.clear();
 

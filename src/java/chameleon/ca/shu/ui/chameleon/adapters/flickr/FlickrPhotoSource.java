@@ -20,6 +20,7 @@ import ca.shu.ui.chameleon.adapters.SourceEmptyException;
 import ca.shu.ui.chameleon.objects.IStreamingPhotoHolder;
 import ca.shu.ui.lib.util.Util;
 
+import com.aetrion.flickr.Flickr;
 import com.aetrion.flickr.FlickrException;
 import com.aetrion.flickr.photos.Extras;
 import com.aetrion.flickr.photos.Photo;
@@ -90,8 +91,15 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 
 	private PicsRetriever retriever = null;
 
+	private Flickr flickrAPI;
+
+	protected Flickr getAPI() {
+		return flickrAPI;
+	}
+
 	protected FlickrPhotoSource() {
 		super();
+		flickrAPI = FlickrAPI.create();
 
 		photos = new Vector<FlickrPhoto>();
 		retriever = new PicsRetriever();
@@ -419,17 +427,17 @@ class InterestingSource extends FlickrPhotoSource {
 	static final int GET_PER_BATCH = 50;
 
 	@Override
-	protected PhotoList getPhotoList() throws FlickrException, IOException,
-			SAXException, SourceEmptyException {
+	protected synchronized PhotoList getPhotoList() throws FlickrException,
+			IOException, SAXException, SourceEmptyException {
 
 		CrawlerState state = getCrawlerState();
 
 		PhotoList list = null;
 		try {
 
-			list = FlickrAPI.getInterfaces().getInterestingnessInterface()
-					.getList(state.currentDate, Extras.ALL_EXTRAS,
-							GET_PER_BATCH, state.currentPage);
+			list = getAPI().getInterestingnessInterface().getList(
+					state.currentDate, Extras.ALL_EXTRAS, GET_PER_BATCH,
+					state.currentPage);
 		} catch (FlickrException e) {
 			// no pictures available for that date
 			System.out.println(e + " , " + state.currentDate);
@@ -469,14 +477,14 @@ class RecentSource extends FlickrPhotoSource {
 	static final int GET_PER_BATCH = 50;
 
 	@Override
-	protected PhotoList getPhotoList() throws FlickrException, IOException,
-			SAXException, SourceEmptyException {
+	protected synchronized PhotoList getPhotoList() throws FlickrException,
+			IOException, SAXException, SourceEmptyException {
 
 		CrawlerState state = getCrawlerState();
 
 		PhotoList list = null;
 		try {
-			list = FlickrAPI.getInterfaces().getPhotosInterface().getRecent(
+			list = getAPI().getPhotosInterface().getRecent(
 					state.getNumPerPage(), state.getCurrentPage());
 
 		} catch (FlickrException e) {
@@ -548,11 +556,11 @@ class UserSource extends FlickrPhotoSource {
 	// }
 
 	@Override
-	protected PhotoList getPhotoList() throws FlickrException, IOException,
-			SourceEmptyException, SAXException {
+	protected synchronized PhotoList getPhotoList() throws FlickrException,
+			IOException, SourceEmptyException, SAXException {
 		System.out.println("Started: Getting " + handle + "'s Pictures");
-		PhotoList list = FlickrAPI.getInterfaces().getPeopleInterface()
-				.getPublicPhotos(userId, GET_PER_BATCH, pageNum++);
+		PhotoList list = getAPI().getPeopleInterface().getPublicPhotos(userId,
+				GET_PER_BATCH, pageNum++);
 		if (list.size() == 0) {
 			throw new SourceEmptyException("no more from user photos");
 		}
@@ -562,13 +570,13 @@ class UserSource extends FlickrPhotoSource {
 	}
 
 	@Override
-	protected void initSource() throws IOException, SAXException,
+	protected synchronized void initSource() throws IOException, SAXException,
 			FlickrException {
 		if (isUserId) {
 			userId = handle;
 		} else {
-			userId = FlickrAPI.getInterfaces().getPeopleInterface()
-					.findByUsername(handle).getId();
+			userId = getAPI().getPeopleInterface().findByUsername(handle)
+					.getId();
 		}
 
 	}

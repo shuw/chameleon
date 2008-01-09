@@ -9,8 +9,8 @@ import javax.swing.JMenuBar;
 import ca.shu.ui.chameleon.actions.flickr.NetworkBuilder;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrUser;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs.FlickrDialogException;
+import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.chameleon.objects.PhotoCollage;
 import ca.shu.ui.lib.AppFrame;
 import ca.shu.ui.lib.actions.ActionException;
@@ -39,7 +39,7 @@ public class Chameleon extends AppFrame {
 		new Chameleon();
 	}
 
-	Hashtable<String, FlickrUser> personTable = new Hashtable<String, FlickrUser>();
+	Hashtable<String, Person> personTable = new Hashtable<String, Person>();
 
 	public Chameleon() {
 		if (myInstance != null) {
@@ -51,7 +51,7 @@ public class Chameleon extends AppFrame {
 		getCanvas().getWorld().getGround().setElasticEnabled(true);
 	}
 
-	public void addPerson(FlickrUser person) {
+	public void addPerson(Person person) {
 		if (personTable.get(person.getId()) != null) {
 			throw new InvalidParameterException();
 		}
@@ -60,8 +60,8 @@ public class Chameleon extends AppFrame {
 	}
 
 	public void addRelationship(String id_personA, String id_personB) {
-		FlickrUser personA = getPerson(id_personA);
-		FlickrUser personB = getPerson(id_personB);
+		Person personA = getPerson(id_personA);
+		Person personB = getPerson(id_personB);
 
 		PEdge edge = new PEdge(personA, personB, false);
 
@@ -84,7 +84,7 @@ public class Chameleon extends AppFrame {
 		return getAppName();
 	}
 
-	public FlickrUser getPerson(String id) {
+	public Person getPerson(String id) {
 		return personTable.get(id);
 	}
 

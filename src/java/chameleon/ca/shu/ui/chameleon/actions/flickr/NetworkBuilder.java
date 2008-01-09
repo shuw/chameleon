@@ -12,12 +12,13 @@ import org.xml.sax.SAXException;
 import ca.shu.ui.chameleon.Chameleon;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrAPI;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrUser;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs.FlickrDialogException;
+import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.actions.UserCancelledException;
 
+import com.aetrion.flickr.Flickr;
 import com.aetrion.flickr.FlickrException;
 import com.aetrion.flickr.contacts.Contact;
 import com.aetrion.flickr.people.User;
@@ -29,7 +30,7 @@ public class NetworkBuilder extends StandardAction {
 	private static User loadUser(String userName) throws IOException,
 			SAXException, FlickrException {
 
-		return FlickrAPI.getInterfaces().getPeopleInterface().findByUsername(
+		return FlickrAPI.create().getPeopleInterface().findByUsername(
 				userName);
 
 	}
@@ -70,9 +71,9 @@ public class NetworkBuilder extends StandardAction {
 }
 
 class AddFlickrUserRunner implements Runnable {
-	FlickrUser flickrUser;
+	Person flickrUser;
 
-	public AddFlickrUserRunner(FlickrUser flickrUser) {
+	public AddFlickrUserRunner(Person flickrUser) {
 		super();
 		this.flickrUser = flickrUser;
 	}
@@ -115,7 +116,7 @@ class FriendLoader implements Runnable {
 		}
 	}
 
-	public static void addUser(FlickrUser flickrUser) throws IOException,
+	public static void addUser(Person flickrUser) throws IOException,
 			SAXException, FlickrException {
 
 		try {
@@ -148,12 +149,14 @@ class FriendLoader implements Runnable {
 	private void loadRecursive(User rootUser, int depth, boolean limitFriends)
 			throws IOException, SAXException, FlickrException {
 
+		Flickr api = FlickrAPI.create();
+
 		if (depth >= MAX_DEPTH) {
 			return;
 		}
 
-		Collection<Contact> contacts = FlickrAPI.getInterfaces()
-				.getContactsInterface().getPublicList(rootUser.getId());
+		Collection<Contact> contacts = api.getContactsInterface()
+				.getPublicList(rootUser.getId());
 
 		Collection<Contact> foreignContacts = new ArrayList<Contact>(contacts
 				.size());
@@ -163,7 +166,7 @@ class FriendLoader implements Runnable {
 		// first find contact who already exist in the world
 		for (Contact contact : contacts) {
 
-			FlickrUser flickrUser = Chameleon.getInstance().getPerson(
+			Person flickrUser = Chameleon.getInstance().getPerson(
 					contact.getId());
 
 			if (flickrUser != null) {
@@ -184,7 +187,7 @@ class FriendLoader implements Runnable {
 				break;
 			}
 
-			FlickrUser flickrUser = Chameleon.getInstance().getPerson(
+			Person flickrUser = Chameleon.getInstance().getPerson(
 					contact.getId());
 
 			if (flickrUser != null) {
@@ -193,11 +196,10 @@ class FriendLoader implements Runnable {
 
 			if (contactUser == null) {
 				// load user from contact
-				contactUser = FlickrAPI.getInterfaces().getPeopleInterface()
-						.getInfo(contact.getId());
-				flickrUser = new FlickrUser(contactUser);
+				contactUser = api.getPeopleInterface().getInfo(contact.getId());
+				flickrUser = new Person(contactUser);
 
-				FlickrUser rootFlickrUser = Chameleon.getInstance().getPerson(
+				Person rootFlickrUser = Chameleon.getInstance().getPerson(
 						rootUser.getId());
 
 				// Move the new user to the position of the root user
@@ -217,7 +219,7 @@ class FriendLoader implements Runnable {
 
 	public void run() {
 		try {
-			FlickrUser flickrUser = new FlickrUser(origin);
+			Person flickrUser = new Person(origin);
 			addUser(flickrUser);
 
 			loadRecursive(origin, 0, false);
