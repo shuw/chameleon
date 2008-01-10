@@ -1,24 +1,22 @@
 package ca.shu.ui.chameleon;
 
 import java.awt.event.KeyEvent;
-import java.security.InvalidParameterException;
-import java.util.Hashtable;
 
 import javax.swing.JMenuBar;
 
-import ca.shu.ui.chameleon.actions.flickr.FlickrNetworkAction;
+import ca.shu.ui.chameleon.actions.flickr.LoadNetworkAction;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs.FlickrDialogException;
-import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.chameleon.objects.PhotoCollage;
+import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.AppFrame;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.actions.UserCancelledException;
-import ca.shu.ui.lib.objects.PEdge;
 import ca.shu.ui.lib.util.UIEnvironment;
 import ca.shu.ui.lib.util.menus.MenuBuilder;
+import ca.shu.ui.lib.world.elastic.ElasticGround;
 
 public class Chameleon extends AppFrame {
 
@@ -39,8 +37,6 @@ public class Chameleon extends AppFrame {
 		new Chameleon();
 	}
 
-	Hashtable<String, Person> personTable = new Hashtable<String, Person>();
-
 	public Chameleon() {
 		if (myInstance != null) {
 			throw new RuntimeException(
@@ -49,30 +45,6 @@ public class Chameleon extends AppFrame {
 		myInstance = this;
 
 		getCanvas().getWorld().getGround().setElasticEnabled(true);
-	}
-
-	public void addPerson(Person person) {
-		if (personTable.get(person.getId()) != null) {
-			throw new InvalidParameterException();
-		}
-		personTable.put(person.getId(), person);
-		getCanvas().getWorld().getGround().addChild(person);
-	}
-
-	public void addRelationship(Person personA, Person personB) {
-		PEdge edge = new PEdge(personA, personB, false);
-		getWorld().getGround().addEdge(edge);
-	}
-
-	public void addRelationship(String id_personA, String id_personB) {
-		Person personA = getPerson(id_personA);
-		Person personB = getPerson(id_personB);
-
-		if (personA != null && personB != null) {
-			addRelationship(personA, personB);
-		} else {
-			throw new InvalidParameterException();
-		}
 	}
 
 	@Override
@@ -90,10 +62,6 @@ public class Chameleon extends AppFrame {
 		return getAppName();
 	}
 
-	public Person getPerson(String id) {
-		return personTable.get(id);
-	}
-
 	@Override
 	public void initFileMenu(JMenuBar menuBar) {
 		MenuBuilder fileMenu = new MenuBuilder("File");
@@ -101,8 +69,8 @@ public class Chameleon extends AppFrame {
 
 		menuBar.add(fileMenu.getJMenu());
 
-		fileMenu.addAction(new FlickrNetworkAction("Open social network", 2,
-				this), KeyEvent.VK_S);
+		fileMenu.addAction(new LoadNetworkAction("Open social network", 2,
+				getChameleonHolder()), KeyEvent.VK_S);
 
 		fileMenu.addAction(new OpenUserPhotos("Open user photos"),
 				KeyEvent.VK_P);
@@ -111,11 +79,11 @@ public class Chameleon extends AppFrame {
 
 	class OpenUserPhotos extends StandardAction {
 
+		private static final long serialVersionUID = 1L;
+
 		public OpenUserPhotos(String description) {
 			super(description);
 		}
-
-		private static final long serialVersionUID = 1L;
 
 		@Override
 		protected void action() throws ActionException {
@@ -133,6 +101,15 @@ public class Chameleon extends AppFrame {
 			}
 		}
 
+	}
+
+	@Override
+	protected ElasticGround createGround() {
+		return new SocialGround();
+	}
+
+	private SocialGround getChameleonHolder() {
+		return (SocialGround) getWorld().getGround();
 	}
 
 }

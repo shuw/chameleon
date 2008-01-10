@@ -6,67 +6,29 @@ import javax.swing.SwingUtilities;
 
 import org.xml.sax.SAXException;
 
-import ca.shu.ui.chameleon.Chameleon;
-import ca.shu.ui.chameleon.actions.AbstractNetworkAction;
+import ca.shu.ui.chameleon.actions.NetworkAction;
 import ca.shu.ui.chameleon.adapters.IAsyncNetworkLoader;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrAPI;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrNetworkLoader;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs.FlickrDialogException;
 import ca.shu.ui.chameleon.objects.Person;
-import ca.shu.ui.lib.actions.ActionException;
-import ca.shu.ui.lib.actions.UserCancelledException;
+import ca.shu.ui.chameleon.world.SocialGround;
+import ca.shu.ui.lib.activities.Fader;
 
 import com.aetrion.flickr.Flickr;
 import com.aetrion.flickr.FlickrException;
 import com.aetrion.flickr.people.User;
 
-public class FlickrNetworkAction extends AbstractNetworkAction {
+public abstract class FlickrNetworkAction extends NetworkAction {
 
 	private static final long serialVersionUID = 1L;
-	Chameleon myChameleon;
+	SocialGround myChameleon;
 	private Flickr flickrAPI;
 
 	public FlickrNetworkAction(String actionName, int numOfDegrees,
-			Chameleon chameleon) {
+			SocialGround chameleon) {
 		super(actionName, numOfDegrees);
 		flickrAPI = FlickrAPI.create();
 		this.myChameleon = chameleon;
-	}
-
-	private static User loadUser(String userName) throws IOException,
-			SAXException, FlickrException {
-
-		return FlickrAPI.create().getPeopleInterface().findByUsername(userName);
-
-	}
-
-	@Override
-	protected String getRootId() throws ActionException {
-		try {
-			String userName = FlickrDialogs.askUserName();
-			// resolve the home user in the action thread
-			User user;
-			try {
-				user = loadUser(userName);
-			} catch (IOException e) {
-				e.printStackTrace();
-				return null;
-			} catch (SAXException e) {
-				e.printStackTrace();
-				return null;
-			} catch (FlickrException e) {
-				throw new ActionException(e.getMessage());
-			}
-
-			Person uiPerson = new Person(user);
-			myChameleon.addPerson(uiPerson);
-
-			return user.getId();
-		} catch (FlickrDialogException e1) {
-			throw new UserCancelledException();
-		}
-
 	}
 
 	@Override
@@ -116,26 +78,11 @@ public class FlickrNetworkAction extends AbstractNetworkAction {
 	}
 }
 
-class AddFlickrUserRunner implements Runnable {
-	User flickrUser;
-
-	public AddFlickrUserRunner(User flickrUser) {
-		super();
-		this.flickrUser = flickrUser;
-	}
-
-	public void run() {
-		Person person = new Person(flickrUser);
-		Chameleon.getInstance().addPerson(person);
-	}
-
-}
-
 class AddRelationshipRunner implements Runnable {
 	private User userA, userB;
-	private Chameleon myChameleon;
+	private SocialGround myChameleon;
 
-	public AddRelationshipRunner(User userA, User userB, Chameleon chameleon) {
+	public AddRelationshipRunner(User userA, User userB, SocialGround chameleon) {
 		super();
 		this.myChameleon = chameleon;
 		this.userA = userA;
@@ -152,6 +99,15 @@ class AddRelationshipRunner implements Runnable {
 		Person personB = myChameleon.getPerson(userB.getId());
 		if (personB == null) {
 			personB = new Person(userB);
+
+			// If this is a new person being created, we move it to the person
+			// it was related to
+
+			personB.setOffset(personA.getOffset().getX() + 20, personA
+					.getOffset().getY() + 20);
+			personB.setTransparency(0f);
+			Fader fader = new Fader(personB, 1000, 1f);
+			myChameleon.addActivity(fader);
 			myChameleon.addPerson(personB);
 		}
 

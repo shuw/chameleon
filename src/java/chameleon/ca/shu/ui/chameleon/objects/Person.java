@@ -5,9 +5,11 @@ import java.net.URL;
 
 import javax.swing.SwingUtilities;
 
+import ca.shu.ui.chameleon.actions.flickr.ExpandNetworkAction;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
+import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
@@ -39,6 +41,7 @@ public class Person extends ModelObject implements IUser, Interactable {
 			}
 		})).start();
 
+		setName(user.getRealName());
 	}
 
 	private void loadProfileImage() {
@@ -57,7 +60,7 @@ public class Person extends ModelObject implements IUser, Interactable {
 						-profileImage.getWidth() / 2f);
 				addChild(profileImage);
 				setBounds(parentToLocal(getFullBounds()));
-//				setBounds(profileImage.localToParent(profileImage.getBounds()));
+				// setBounds(profileImage.localToParent(profileImage.getBounds()));
 				profileImage.setPaint(Style.COLOR_DISABLED);
 			}
 		});
@@ -68,6 +71,12 @@ public class Person extends ModelObject implements IUser, Interactable {
 	protected void constructMenu(PopupMenuBuilder menu) {
 		super.constructMenu(menu);
 		ChameleonMenus.constructMenu(this, menu);
+
+		if (getWorldLayer() instanceof SocialGround) {
+			SocialGround ground = (SocialGround) getWorldLayer();
+			menu.addAction(new ExpandNetworkAction("Show friends", 2, ground,
+					this));
+		}
 
 		if (!isPhotosEnabled()) {
 			menu.addAction(new SetPhotosEnabledAction("Show photos", true));

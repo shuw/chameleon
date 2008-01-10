@@ -147,13 +147,20 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 		synchronized (photos) {
 			// retriever has stopped, throw error
 			if (!retriever.isAlive()) {
-				throw new IStreamingSourceException("Source Error");
+				throw new IStreamingSourceException("Source closed");
 			}
 
 			photos.notifyAll(); // photos will change
 			Vector<IPhoto> photosToReturn = new Vector<IPhoto>(count);
 			for (int i = 0; i < count; i++) {
-				photosToReturn.add(photos.remove(0));
+				try {
+					while (photos.size() == 0) {
+						photos.wait();
+					}
+					photosToReturn.add(photos.remove(0));
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 
 			return photosToReturn;
