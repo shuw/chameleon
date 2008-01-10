@@ -6,7 +6,7 @@ import java.util.Hashtable;
 
 import javax.swing.JMenuBar;
 
-import ca.shu.ui.chameleon.actions.flickr.NetworkBuilder;
+import ca.shu.ui.chameleon.actions.flickr.FlickrNetworkAction;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs.FlickrDialogException;
@@ -59,14 +59,20 @@ public class Chameleon extends AppFrame {
 		getCanvas().getWorld().getGround().addChild(person);
 	}
 
+	public void addRelationship(Person personA, Person personB) {
+		PEdge edge = new PEdge(personA, personB, false);
+		getWorld().getGround().addEdge(edge);
+	}
+
 	public void addRelationship(String id_personA, String id_personB) {
 		Person personA = getPerson(id_personA);
 		Person personB = getPerson(id_personB);
 
-		PEdge edge = new PEdge(personA, personB, false);
-
-		getWorld().getGround().addEdge(edge);
-
+		if (personA != null && personB != null) {
+			addRelationship(personA, personB);
+		} else {
+			throw new InvalidParameterException();
+		}
 	}
 
 	@Override
@@ -95,8 +101,8 @@ public class Chameleon extends AppFrame {
 
 		menuBar.add(fileMenu.getJMenu());
 
-		fileMenu.addAction(new NetworkBuilder("Open social network"),
-				KeyEvent.VK_S);
+		fileMenu.addAction(new FlickrNetworkAction("Open social network", 2,
+				this), KeyEvent.VK_S);
 
 		fileMenu.addAction(new OpenUserPhotos("Open user photos"),
 				KeyEvent.VK_P);

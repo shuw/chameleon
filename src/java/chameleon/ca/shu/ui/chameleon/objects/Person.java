@@ -3,6 +3,8 @@ package ca.shu.ui.chameleon.objects;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.swing.SwingUtilities;
+
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
@@ -22,24 +24,43 @@ public class Person extends ModelObject implements IUser, Interactable {
 
 	private static final long serialVersionUID = 1L;
 
+	private RectangularEdge collageShadow = null;
+
+	private PhotoCollage myPhotoCollage = null;
+
 	private PImage profileImage;
 
 	public Person(User user) {
 		super(user);
 
+		(new Thread(new Runnable() {
+			public void run() {
+				loadProfileImage();
+			}
+		})).start();
+
+	}
+
+	private void loadProfileImage() {
+
 		try {
-			profileImage = new PImage(new URL(user.getBuddyIconUrl()));
+			profileImage = new PImage(new URL(getModel().getBuddyIconUrl()));
 			profileImage.setPickable(false);
-			profileImage.setOffset(-profileImage.getWidth() / 2f, -profileImage
-					.getWidth() / 2f);
 
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e.getMessage());
 		}
 
-		addChild(profileImage);
-		setBounds(getFullBounds());
-		profileImage.setPaint(Style.COLOR_DISABLED);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				profileImage.setOffset(-profileImage.getWidth() / 2f,
+						-profileImage.getWidth() / 2f);
+				addChild(profileImage);
+				setBounds(parentToLocal(getFullBounds()));
+//				setBounds(profileImage.localToParent(profileImage.getBounds()));
+				profileImage.setPaint(Style.COLOR_DISABLED);
+			}
+		});
 
 	}
 
@@ -85,9 +106,6 @@ public class Person extends ModelObject implements IUser, Interactable {
 	public String getUserName() {
 		return getModel().getUsername();
 	}
-
-	private PhotoCollage myPhotoCollage = null;
-	private RectangularEdge collageShadow = null;
 
 	public boolean isPhotosEnabled() {
 		if (myPhotoCollage != null) {

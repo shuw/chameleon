@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.Stack;
 
 import ca.shu.ui.chameleon.adapters.IPhoto;
-import ca.shu.ui.chameleon.adapters.IPhotoSourceException;
+import ca.shu.ui.chameleon.adapters.IStreamingSourceException;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.SourceEmptyException;
 import ca.shu.ui.lib.Style.Style;
@@ -227,7 +227,7 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 					if (photos.size() > 0) {
 						addPhoto(photos.iterator().next());
 					}
-				} catch (IPhotoSourceException e1) {
+				} catch (IStreamingSourceException e1) {
 					setSourceState(SourceState.ERROR);
 					break;
 				} catch (SourceEmptyException e) {

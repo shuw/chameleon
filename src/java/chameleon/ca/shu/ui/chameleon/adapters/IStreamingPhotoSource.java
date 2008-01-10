@@ -7,8 +7,8 @@ import ca.shu.ui.chameleon.objects.IStreamingPhotoHolder;
 public interface IStreamingPhotoSource {
 
 	public void close();
-	public IPhoto getPhoto() throws IPhotoSourceException, SourceEmptyException;
-	public Collection<IPhoto> getPhotos(int count) throws IPhotoSourceException, SourceEmptyException;
+	public IPhoto getPhoto() throws IStreamingSourceException, SourceEmptyException;
+	public Collection<IPhoto> getPhotos(int count) throws IStreamingSourceException, SourceEmptyException;
 	public Thread getPhotosAsync(int count, IStreamingPhotoHolder photoHolder);
 	
 }

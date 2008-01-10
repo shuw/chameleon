@@ -1,6 +1,11 @@
 TODO:
 
+Some parts of the jung graph are not being updated 
+
+
 lock image positions when photo collage is open
+
+Create a global hashtable of users, as a cache
 
 Actions
 	get comments, bring in new people from sn network

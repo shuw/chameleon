@@ -3,10 +3,8 @@ package ca.shu.ui.chameleon.adapters.flickr;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Vector;
@@ -14,11 +12,10 @@ import java.util.Vector;
 import org.xml.sax.SAXException;
 
 import ca.shu.ui.chameleon.adapters.IPhoto;
-import ca.shu.ui.chameleon.adapters.IPhotoSourceException;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
+import ca.shu.ui.chameleon.adapters.IStreamingSourceException;
 import ca.shu.ui.chameleon.adapters.SourceEmptyException;
 import ca.shu.ui.chameleon.objects.IStreamingPhotoHolder;
-import ca.shu.ui.lib.util.Util;
 
 import com.aetrion.flickr.Flickr;
 import com.aetrion.flickr.FlickrException;
@@ -139,29 +136,27 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 		return state;
 	}
 
-	public IPhoto getPhoto() throws IPhotoSourceException, SourceEmptyException {
+	public IPhoto getPhoto() throws IStreamingSourceException,
+			SourceEmptyException {
 		Collection<IPhoto> photos = getPhotos(1);
 		return photos.iterator().next();
 	}
 
-	public Collection<IPhoto> getPhotos(int count) throws IPhotoSourceException {
+	public Collection<IPhoto> getPhotos(int count)
+			throws IStreamingSourceException {
 		synchronized (photos) {
-			photos.notifyAll(); // notify that photos may have been depleted
-
-			if (photos.size() >= count) {
-				Vector<IPhoto> photosToReturn = new Vector<IPhoto>(count);
-
-				for (int i = 0; i < count; i++) {
-					photosToReturn.add(photos.remove(0));
-				}
-				return photosToReturn;
-			}
 			// retriever has stopped, throw error
-			else if (!retriever.isAlive()) {
-				throw new IPhotoSourceException("Source Error");
+			if (!retriever.isAlive()) {
+				throw new IStreamingSourceException("Source Error");
 			}
 
-			return new Vector<IPhoto>(0);
+			photos.notifyAll(); // photos will change
+			Vector<IPhoto> photosToReturn = new Vector<IPhoto>(count);
+			for (int i = 0; i < count; i++) {
+				photosToReturn.add(photos.remove(0));
+			}
+
+			return photosToReturn;
 		}
 	}
 
@@ -176,109 +171,6 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 	public abstract CrawlerState initCrawlerState();
 
 	static final String CRAWLER_STATE_FILE_NAME = "crawlerState.data";
-
-	private void loadCrawlerState() {
-
-		FileInputStream f_in;
-
-		try {
-			File file = new File(getCachedFolder(), CRAWLER_STATE_FILE_NAME);
-
-			f_in = new FileInputStream(file);
-
-			ObjectInputStream obj_in = new ObjectInputStream(f_in);
-
-			Object obj;
-
-			obj = obj_in.readObject();
-
-			if (obj instanceof CrawlerState) {
-				state = (CrawlerState) obj;
-				return;
-			} else {
-				System.out
-						.println("Stored crawler state was invalid. it was of type"
-								+ obj.getClass());
-			}
-
-		} catch (FileNotFoundException e) {
-			System.out.println("No saved crawler state found at: "
-					+ getCachedFolder().toString());
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	/**
-	 * @param id
-	 * @return FlickrPhoto, null if cached copy could not be found
-	 */
-	private FlickrPhoto loadMetadata(String id) {
-		File file = new File(getCachedFolder(), id + ".data");
-
-		if (file.exists()) {
-
-			Object obj = loadObject(file.toString());
-
-			if (obj != null && obj instanceof FlickrPhoto) {
-				return (FlickrPhoto) obj;
-			}
-		}
-		return null;
-
-	}
-
-	private void saveCrawlerState() {
-		// Write to disk with FileOutputStream
-		FileOutputStream f_out;
-		try {
-			File file = new File(getCachedFolder(), CRAWLER_STATE_FILE_NAME);
-
-			f_out = new FileOutputStream(file);
-			ObjectOutputStream obj_out;
-			obj_out = new ObjectOutputStream(f_out);
-			obj_out.writeObject(state);
-
-			System.out.println("Saved: " + state.getHandle() + ": "
-					+ state.currentDate + ", page: " + (state.getCurrentPage())
-					+ ", count: " + state.getCurrentPhotoCounter());
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void saveMetadata(FlickrPhoto photo) {
-		// Write to disk with FileOutputStream
-		FileOutputStream f_out;
-		try {
-
-			File file = new File(getCachedFolder(), photo.getId() + ".data");
-
-			if (file.exists()) {
-				Util.debugMsg("Updating metadata file cache");
-			} else {
-				Util.debugMsg("Writing metadata file to cache");
-			}
-
-			f_out = new FileOutputStream(file);
-
-			ObjectOutputStream obj_out;
-			obj_out = new ObjectOutputStream(f_out);
-			obj_out.writeObject(photo);
-
-			saveCrawlerState();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
 
 	class AsyncPhotoAdder extends Thread {
 		int numOfPhotosToAdd;
