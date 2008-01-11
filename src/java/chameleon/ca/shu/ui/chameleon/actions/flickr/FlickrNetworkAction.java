@@ -12,7 +12,6 @@ import ca.shu.ui.chameleon.adapters.flickr.FlickrAPI;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrNetworkLoader;
 import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.chameleon.world.SocialGround;
-import ca.shu.ui.lib.activities.Fader;
 
 import com.aetrion.flickr.Flickr;
 import com.aetrion.flickr.FlickrException;
@@ -90,28 +89,6 @@ class AddRelationshipRunner implements Runnable {
 	}
 
 	public void run() {
-
-		Person personA = myChameleon.getPerson(userA.getId());
-		if (personA == null) {
-			personA = new Person(userA);
-			myChameleon.addPerson(personA);
-		}
-		Person personB = myChameleon.getPerson(userB.getId());
-		if (personB == null) {
-			personB = new Person(userB);
-
-			// If this is a new person being created, we move it to the person
-			// it was related to
-
-			personB.setOffset(personA.getOffset().getX() + 20, personA
-					.getOffset().getY() + 20);
-			personB.setTransparency(0f);
-			Fader fader = new Fader(personB, 1000, 1f);
-			myChameleon.addActivity(fader);
-			myChameleon.addPerson(personB);
-		}
-
-		myChameleon.addRelationship(personA, personB);
-
+		myChameleon.addMutualRelationship(userA, userB);
 	}
 }
