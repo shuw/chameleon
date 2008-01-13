@@ -5,6 +5,9 @@ import java.io.File;
 
 import javax.swing.SwingUtilities;
 
+import ca.neo.ui.models.tooltips.ITooltipPart;
+import ca.neo.ui.models.tooltips.TooltipBuilder;
+import ca.neo.ui.models.tooltips.TooltipProperty;
 import ca.shu.ui.chameleon.adapters.IPhoto;
 import ca.shu.ui.chameleon.adapters.flickr.FileDownload;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
@@ -228,6 +231,13 @@ public class Photo extends ModelObject implements Interactable {
 			changeResolution(increase);
 		}
 
+	}
+
+	@Override
+	protected void constructTooltips(TooltipBuilder builder) {
+		builder.addPart(new TooltipProperty("Title", getModel().getTitle()));
+		builder.addPart(new TooltipProperty("Description", getModel()
+				.getDescription()));
 	}
 
 	@Override

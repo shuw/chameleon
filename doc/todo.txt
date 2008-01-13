@@ -1,10 +1,18 @@
 TODO:
 
-animate collage
+Show photo pop up, show comments
+
+Limit external string sizes in UI (avoid long user names)
+
+modify TooltipParts to return WorldObject
+
+open new worlds within the world
+
+allow objects to be dragged out of Photo Collage
+
 
 Show warning message when source has no photos
 
-Show photo pop up, show comments
 
 lock image positions when photo collage is open
 

@@ -139,15 +139,6 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 		} else {
 			menu.addAction(new SetAutoScrollAction("Start scrolling", true));
 		}
-
-		// addButton(new GButton("Get next " + getPhotosNum + " Photos",
-		// new Runnable() {
-		// public void run() {
-		//
-		// collage.getMorePhotos(getPhotosNum);
-		// }
-		// }));
-
 	}
 
 	public boolean addPhoto(IPhoto photo) {
