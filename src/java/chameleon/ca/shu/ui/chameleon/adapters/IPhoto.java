@@ -3,7 +3,7 @@ package ca.shu.ui.chameleon.adapters;
 import java.net.URL;
 import java.util.Date;
 
-public interface IPhoto {
+public interface IPhoto extends IChameleonObj {
 	public String getAuthorName();
 
 	public int getCommentsCount();

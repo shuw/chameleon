@@ -137,7 +137,7 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 
 			menu.addAction(new SetAutoScrollAction("Stop scrolling", false));
 		} else {
-			menu.addAction(new SetAutoScrollAction("Stop scrolling", true));
+			menu.addAction(new SetAutoScrollAction("Start scrolling", true));
 		}
 
 		// addButton(new GButton("Get next " + getPhotosNum + " Photos",
@@ -342,10 +342,8 @@ class Collage extends WorldObject {
 				// its moved off the screen
 				if (moveTo < 0) {
 					addActivity(new Fader(photo, 1000, 0f));
-					photo
-							.animateToPositionScaleRotation(photo.getOffset()
-									.getX(), photo.getOffset().getY() - 500, 1,
-									0, 1000);
+					photo.animateToPosition(photo.getOffset().getX(), photo
+							.getOffset().getY() - 500, 1000);
 					addActivity(new RemovePhoto(1000, photo));
 				}
 			}

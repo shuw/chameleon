@@ -6,6 +6,7 @@ import org.xml.sax.SAXException;
 
 import ca.shu.ui.chameleon.adapters.flickr.FlickrAPI;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs;
+import ca.shu.ui.chameleon.adapters.flickr.FlickrUser;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs.FlickrDialogException;
 import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.chameleon.world.SocialGround;
@@ -30,19 +31,19 @@ public class LoadNetworkAction extends FlickrNetworkAction {
 	}
 
 	@Override
-	protected String getRootId() throws ActionException {
+	protected Person getPersonRoot() throws ActionException {
 		try {
 			String userName = FlickrDialogs.askUserName();
+
 			// resolve the home user in the action thread
-			User user;
+			FlickrUser user;
 			try {
-				user = loadUser(userName);
+				user = new FlickrUser(loadUser(userName));
 			} catch (IOException e) {
 				e.printStackTrace();
 				return null;
 			} catch (SAXException e) {
-				e.printStackTrace();
-				return null;
+				throw new ActionException("Site down: " + e.getMessage());
 			} catch (FlickrException e) {
 				throw new ActionException(e.getMessage());
 			}
@@ -50,11 +51,11 @@ public class LoadNetworkAction extends FlickrNetworkAction {
 			Person uiPerson = new Person(user);
 			myChameleon.addPerson(uiPerson);
 
-			return user.getId();
+			return uiPerson;
 		} catch (FlickrDialogException e1) {
 			throw new UserCancelledException();
+		} finally {
 		}
 
 	}
-
 }

@@ -9,6 +9,8 @@ import ca.shu.ui.chameleon.adapters.IPhoto;
 import ca.shu.ui.chameleon.adapters.flickr.FileDownload;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
 import ca.shu.ui.lib.Style.Style;
+import ca.shu.ui.lib.actions.ActionException;
+import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
 import ca.shu.ui.lib.world.Interactable;
@@ -22,15 +24,16 @@ import edu.umd.cs.piccolo.nodes.PImage;
 import edu.umd.cs.piccolo.nodes.PText;
 import edu.umd.cs.piccolox.handles.PBoundsHandle;
 
+/**
+ * @author Shu Wu
+ */
 public class Photo extends ModelObject implements Interactable {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 
 	static final double IMG_BORDER_PX = 50;
 
-	private int currentSize = 0;
+	private int currentSize;
 
 	private PNode image;
 
@@ -38,7 +41,7 @@ public class Photo extends ModelObject implements Interactable {
 
 	private PText loadingText;
 
-	private GPhotoInfoFrame photoInfoFrame;
+	private PhotoInfoFrame photoInfoFrame;
 
 	private IPhoto proxy;
 
@@ -46,19 +49,15 @@ public class Photo extends ModelObject implements Interactable {
 		super(photoWr);
 		this.proxy = photoWr;
 
-		// Sets the default size of photos to the cached photo size
-		currentSize = FlickrPhotoSource.DEFAULT_PHOTO_SIZE;
-
 		imageHolder = new PNode();
 		this.addChild(imageHolder);
 		setName(getModel().getTitle());
+		addInputEventListener(new PhotoEventHandler(this));
 
-		(new Thread() {
-			@Override
-			public void run() {
-				loadImage(currentSize);
-			}
-		}).start();
+		// Sets the default size of photos to the cached photo size
+		currentSize = FlickrPhotoSource.DEFAULT_PHOTO_SIZE;
+
+		loadImage();
 	}
 
 	@Override
@@ -66,45 +65,64 @@ public class Photo extends ModelObject implements Interactable {
 		return (IPhoto) super.getModel();
 	}
 
-	public void createInfoFrame() {
-
-		photoInfoFrame = new GPhotoInfoFrame(proxy);
-
-		Point2D framePosition = this.getOffset();
-
-		photoInfoFrame.setOffset(framePosition.getX(), framePosition.getY());
-
-		this.addChild(photoInfoFrame);
-		photoInfoFrame.animateToPositionScaleRotation(framePosition.getX()
-				+ this.getWidth() + 20, framePosition.getY(), 1, 0, 500);
+	private boolean isPhotoFrameVisible() {
+		if (photoInfoFrame != null) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
-	public void getHigherResolution() {
+	private void setPhotoFrameVisible(boolean isVisible) {
+		if (isVisible) {
+			photoInfoFrame = new PhotoInfoFrame(proxy);
 
-		if (currentSize > (Size.LARGE)) {
-			return;
+			Point2D framePosition = this.getOffset();
+
+			photoInfoFrame
+					.setOffset(framePosition.getX(), framePosition.getY());
+
+			this.addChild(photoInfoFrame);
+			photoInfoFrame.animateToPositionScaleRotation(framePosition.getX()
+					+ this.getWidth() + 20, framePosition.getY(), 1, 0, 500);
 		} else {
-			currentSize++;
+			if (photoInfoFrame != null) {
+				this.removeChild(photoInfoFrame);
+				photoInfoFrame = null;
+			}
+		}
+	}
+
+	private boolean canChangeResolution(boolean increase) {
+		if (increase) {
+			if (currentSize < (Size.LARGE)) {
+				return true;
+			}
+		} else {
+			if (currentSize > (Size.SMALL)) {
+				return true;
+			}
 		}
 
-		(new Thread() {
-			@Override
-			public void run() {
-				loadImage(currentSize);
-			}
-		}).start();
+		return false;
+	}
 
+	private void changeResolution(boolean increase) {
+		if (canChangeResolution(increase)) {
+
+			if (increase) {
+				currentSize++;
+			} else {
+				currentSize--;
+			}
+
+			loadImage();
+
+		}
 	}
 
 	public IPhoto getProxy() {
 		return proxy;
-	}
-
-	public void hideInfoFrame() {
-		if (photoInfoFrame != null) {
-			this.removeChild(photoInfoFrame);
-			photoInfoFrame = null;
-		}
 	}
 
 	public boolean isImageLoaded() {
@@ -127,138 +145,118 @@ public class Photo extends ModelObject implements Interactable {
 		return cacheFolder;
 	}
 
-	public void loadImage(int size) {
-		SwingUtilities.invokeLater(new Runnable() {
+	private void loadImage() {
+
+		(new Thread() {
+			@Override
 			public void run() {
-				loadingText = new PText("Loading Image...");
-				loadingText.setOffset(IMG_BORDER_PX, IMG_BORDER_PX);
-				loadingText.setFont(Style.FONT_XLARGE);
-				loadingText.setPaint(Style.COLOR_BACKGROUND);
-				loadingText.setTextPaint(Style.COLOR_FOREGROUND);
-				Photo.this.addChild(loadingText);
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						loadingText = new PText("Loading Image...");
+						loadingText.setOffset(IMG_BORDER_PX, IMG_BORDER_PX);
+						loadingText.setFont(Style.FONT_XLARGE);
+						loadingText.setPaint(Style.COLOR_BACKGROUND);
+						loadingText.setTextPaint(Style.COLOR_FOREGROUND);
+						Photo.this.addChild(loadingText);
 
-			}
-		});
+					}
+				});
 
-		PImage imageInner = null;
+				PImage imageInner = null;
 
-		/*
-		 * Tries to find image in cache first
-		 */
-		File cachedImage = new File(getImageCacheFolder(proxy.getType()), proxy
-				.getId()
-				+ "_Size" + size + ".jpg");
+				/*
+				 * Tries to find image in cache first
+				 */
+				File cachedImage = new File(
+						getImageCacheFolder(proxy.getType()), proxy.getId()
+								+ "_Size" + currentSize + ".jpg");
 
-		if (!cachedImage.exists()) {
-			/*
-			 * Cache the image
-			 */
-			FileDownload.download(proxy.getImageUrl(size).toString(),
-					cachedImage.toString());
-		}
-
-		imageInner = new PImage(cachedImage.toString());
-
-		// create a node to hold the image
-		image = new PNode();
-
-		imageInner.setOffset(IMG_BORDER_PX, IMG_BORDER_PX);
-		image.addChild(imageInner);
-		image.setPickable(false);
-		image.setChildrenPickable(false);
-
-		image.setBounds(0, 0,
-				(float) (imageInner.getWidth() + IMG_BORDER_PX * 2),
-				(float) (imageInner.getHeight() + IMG_BORDER_PX * 2));
-
-		// scales the picture
-
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				loadingText.removeFromParent();
-				imageHolder.removeAllChildren();
-				imageHolder.addChild(image);
-
-				synchronized (Photo.this) {
-					Photo.this.setBounds(Photo.this.globalToLocal(image
-							.localToGlobal(image.getBounds())));
-					Photo.this.notifyAll();
+				if (!cachedImage.exists()) {
+					/*
+					 * Cache the image
+					 */
+					FileDownload.download(proxy.getImageUrl(currentSize)
+							.toString(), cachedImage.toString());
 				}
+
+				imageInner = new PImage(cachedImage.toString());
+
+				// create a node to hold the image
+				image = new PNode();
+
+				imageInner.setOffset(IMG_BORDER_PX, IMG_BORDER_PX);
+				image.addChild(imageInner);
+				image.setPickable(false);
+				image.setChildrenPickable(false);
+
+				image.setBounds(0, 0,
+						(float) (imageInner.getWidth() + IMG_BORDER_PX * 2),
+						(float) (imageInner.getHeight() + IMG_BORDER_PX * 2));
+
+				// scales the picture
+
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						loadingText.removeFromParent();
+						imageHolder.removeAllChildren();
+						imageHolder.addChild(image);
+
+						synchronized (Photo.this) {
+							Photo.this.setBounds(Photo.this.globalToLocal(image
+									.localToGlobal(image.getBounds())));
+							Photo.this.notifyAll();
+						}
+					}
+				});
 			}
-		});
+		}).start();
 
 	}
 
-	public void toggleInfoFrame() {
-		if (photoInfoFrame == null) {
-			createInfoFrame();
-		} else {
-			hideInfoFrame();
+	class ChangeResolutionAction extends StandardAction {
+		private boolean increase;
+
+		public ChangeResolutionAction(String description, boolean increase) {
+			super(description);
+			this.increase = increase;
 		}
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected void action() throws ActionException {
+			changeResolution(increase);
+		}
+
 	}
 
 	@Override
 	protected void constructMenu(PopupMenuBuilder menu) {
-
-		// AbstractButton magnifyBtn = new TextButton("+", new Runnable() {
-		// public void run() {
-		// photo.animateToScale(photo.getScale() * SCALE_FACTOR,
-		// ANIMATE_TIME_MS);
-		//
-		// }
-		// });
-		// AbstractButton shrinkBtn = new TextButton("-", new Runnable() {
-		// public void run() {
-		// photo.animateToScale(photo.getScale() / SCALE_FACTOR,
-		// ANIMATE_TIME_MS);
-		// }
-		// });
-		//
-		// AbstractButton getHigherResolution = new TextButton("+Resolution",
-		// new Runnable() {
-		// public void run() {
-		// photo.getHigherResolution();
-		// }
-		// });
-		//
-		// addButton(new TextButton("Open In Browser", new Runnable() {
-		// public void run() {
-		// FlickrPhoto flickrPhoto = (FlickrPhoto) photo.getProxy();
-		//
-		// Util.openURL(flickrPhoto.photo.getUrl());
-		// // try {
-		// // showURL(new URL(flickrPhoto.photo.getUrl()));
-		// // } catch (MalformedURLException e) {
-		// // // TODO Auto-generated catch block
-		// // e.printStackTrace();
-		// // }
-		// }
-		// }));
-		//
-		// // Button getHigherResolution = new GButton("+", new Runnable() {
-		// // public void run() {
-		// // javax.
-		// // jnlp.BasicService.showDocument
-		// // }
-		// // });
-		//
-		// addButton(magnifyBtn);
-		// addButton(shrinkBtn);
-		// addButton(getHigherResolution);
-		//
-		// addButton(new GButton("close", new Runnable() {
-		// public void run() {
-		// photo.removeFromParent();
-		// }
-		// }));
-
-		// TODO Auto-generated method stub
 		super.constructMenu(menu);
+		ChameleonMenus.constructMenu(this, getModel(), menu);
+
+		if (canChangeResolution(true)) {
+			menu.addAction(new ChangeResolutionAction("+ Resolution", true));
+
+		}
+		if (canChangeResolution(false)) {
+			menu.addAction(new ChangeResolutionAction("- Resolution", false));
+		}
+
 	}
 
 	@Override
 	public String getTypeName() {
 		return "Photo";
+	}
+
+	@Override
+	public void doubleClicked() {
+		if (!isPhotoFrameVisible()) {
+			setPhotoFrameVisible(true);
+		} else {
+			setPhotoFrameVisible(false);
+		}
 	}
 }
 
@@ -268,19 +266,6 @@ class PhotoEventHandler extends PBasicInputEventHandler {
 	public PhotoEventHandler(Photo object) {
 		super();
 		this.photo = object;
-	}
-
-	@Override
-	public void mouseClicked(PInputEvent event) {
-		// TODO Auto-generated method stub
-		super.mouseClicked(event);
-
-		if (event.getClickCount() == 2) {
-			// System.out.println("double click");
-
-			photo.toggleInfoFrame();
-
-		}
 	}
 
 	@Override

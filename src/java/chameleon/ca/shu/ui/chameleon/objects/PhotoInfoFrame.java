@@ -9,15 +9,13 @@ import ca.shu.ui.lib.world.WorldObject;
 import edu.umd.cs.piccolo.nodes.PImage;
 import edu.umd.cs.piccolo.nodes.PPath;
 
-public class GPhotoInfoFrame extends WorldObject {
-	/**
-	 * 
-	 */
+public class PhotoInfoFrame extends WorldObject {
+
 	private static final long serialVersionUID = 1L;
 
 	IPhoto photoInterface;
 
-	public GPhotoInfoFrame(IPhoto photoWr) {
+	public PhotoInfoFrame(IPhoto photoWr) {
 		super();
 		this.photoInterface = photoWr;
 

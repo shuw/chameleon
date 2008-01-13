@@ -1,12 +1,16 @@
 package ca.shu.ui.chameleon.adapters.flickr;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+
+import javax.swing.SwingUtilities;
 
 import org.xml.sax.SAXException;
 
 import ca.shu.ui.chameleon.adapters.IAsyncNetworkLoader;
 import ca.shu.ui.chameleon.adapters.INetworkListener;
+import ca.shu.ui.chameleon.objects.Person;
 
 import com.aetrion.flickr.Flickr;
 import com.aetrion.flickr.FlickrException;
@@ -60,31 +64,53 @@ public class FlickrNetworkLoader implements IAsyncNetworkLoader {
 		}
 	}
 
-	public void loadNetworkAsync(String userIdRoot, int degrees,
+	public void loadNetworkAsync(Person userRoot, int degrees,
 			INetworkListener networkListener) {
-		(new NetworkLoaderThread(userIdRoot, degrees, networkListener)).start();
+		(new NetworkLoaderThread(userRoot, degrees, networkListener)).start();
 
 	}
 
 	class NetworkLoaderThread extends Thread {
 		private INetworkListener networkListener;
 		private int degrees;
-		private String userIdRoot;
+		private Person userRoot;
 
-		public NetworkLoaderThread(String userIdRoot, int degrees,
+		public NetworkLoaderThread(Person userRoot, int degrees,
 				INetworkListener networkListener) {
 			super("Network loader");
-			this.userIdRoot = userIdRoot;
+			this.userRoot = userRoot;
 			this.degrees = degrees;
 			this.networkListener = networkListener;
 		}
 
 		public void run() {
 			try {
-				loadRecursive(userIdRoot, 0, degrees, networkListener);
+				loadNetwork();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void loadNetwork() throws InterruptedException,
+				InvocationTargetException {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				public void run() {
+					userRoot.setPositionLocked(true);
+				}
+			});
+
+			try {
+				loadRecursive(userRoot.getId(), 0, degrees, networkListener);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			SwingUtilities.invokeAndWait(new Runnable() {
+				public void run() {
+					userRoot.setPositionLocked(false);
+				}
+			});
 		}
 	}
 

@@ -1,10 +1,10 @@
 TODO:
 
-Some parts of the jung graph are not being updated 
-	Perhaps there is a maximum to number of edges each node can have
-	
-Do not create duplicate edges in Jung graph, 
-	ie. do not recreate the same relationship twice
+animate collage
+
+Show warning message when source has no photos
+
+Show photo pop up, show comments
 
 lock image positions when photo collage is open
 

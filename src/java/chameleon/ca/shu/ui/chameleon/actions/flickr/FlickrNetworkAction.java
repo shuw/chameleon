@@ -8,14 +8,15 @@ import org.xml.sax.SAXException;
 
 import ca.shu.ui.chameleon.actions.NetworkAction;
 import ca.shu.ui.chameleon.adapters.IAsyncNetworkLoader;
+import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrAPI;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrNetworkLoader;
+import ca.shu.ui.chameleon.adapters.flickr.FlickrUser;
 import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.chameleon.world.SocialGround;
 
 import com.aetrion.flickr.Flickr;
 import com.aetrion.flickr.FlickrException;
-import com.aetrion.flickr.people.User;
 
 public abstract class FlickrNetworkAction extends NetworkAction {
 
@@ -35,13 +36,14 @@ public abstract class FlickrNetworkAction extends NetworkAction {
 		return new FlickrNetworkLoader();
 	}
 
-	private User getUser(String userId, boolean ensure) throws IOException,
+	private IUser getUser(String userId, boolean ensure) throws IOException,
 			SAXException, FlickrException {
 		Person person = myChameleon.getPerson(userId);
 
 		if (person == null) {
 			if (ensure) {
-				User user = flickrAPI.getPeopleInterface().getInfo(userId);
+				FlickrUser user = new FlickrUser(flickrAPI.getPeopleInterface()
+						.getInfo(userId));
 				return user;
 			} else {
 				return null;
@@ -61,11 +63,11 @@ public abstract class FlickrNetworkAction extends NetworkAction {
 				ensure = false;
 			}
 
-			User userA = getUser(userAId, ensure);
-			User userB = getUser(userBId, ensure);
+			IUser userA = getUser(userAId, ensure);
+			IUser userB = getUser(userBId, ensure);
 
 			if (userA != null && userB != null) {
-				SwingUtilities.invokeLater(new AddRelationshipRunner(userA,
+				SwingUtilities.invokeAndWait(new AddRelationshipRunner(userA,
 						userB, myChameleon));
 			}
 		} catch (FlickrException e) {
@@ -78,10 +80,11 @@ public abstract class FlickrNetworkAction extends NetworkAction {
 }
 
 class AddRelationshipRunner implements Runnable {
-	private User userA, userB;
+	private IUser userA, userB;
 	private SocialGround myChameleon;
 
-	public AddRelationshipRunner(User userA, User userB, SocialGround chameleon) {
+	public AddRelationshipRunner(IUser userA, IUser userB,
+			SocialGround chameleon) {
 		super();
 		this.myChameleon = chameleon;
 		this.userA = userA;

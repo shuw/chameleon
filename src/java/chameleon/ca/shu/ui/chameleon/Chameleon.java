@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import javax.swing.JMenuBar;
 
 import ca.shu.ui.chameleon.actions.flickr.LoadNetworkAction;
+import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs.FlickrDialogException;
@@ -75,6 +76,31 @@ public class Chameleon extends AppFrame {
 		fileMenu.addAction(new OpenUserPhotos("Open user photos"),
 				KeyEvent.VK_P);
 
+		fileMenu.addAction(
+				new OpenInterestingPhotos("Open interesting photos"),
+				KeyEvent.VK_P);
+
+	}
+
+	private void openPhotoSource(IStreamingPhotoSource photoSource) {
+		PhotoCollage collage = new PhotoCollage(photoSource);
+
+		getWorld().getGround().addChild(collage);
+	}
+
+	class OpenInterestingPhotos extends StandardAction {
+
+		public OpenInterestingPhotos(String description) {
+			super(description);
+		}
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected void action() throws ActionException {
+			openPhotoSource(FlickrPhotoSource.createInterestingSource());
+		}
+
 	}
 
 	class OpenUserPhotos extends StandardAction {
@@ -92,9 +118,7 @@ public class Chameleon extends AppFrame {
 
 				FlickrPhotoSource source = FlickrPhotoSource
 						.createUserSource(userName);
-				PhotoCollage collage = new PhotoCollage(source);
-
-				getWorld().getGround().addChild(collage);
+				openPhotoSource(source);
 
 			} catch (FlickrDialogException e) {
 				throw new UserCancelledException();

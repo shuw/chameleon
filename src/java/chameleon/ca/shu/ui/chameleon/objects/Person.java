@@ -1,7 +1,6 @@
 package ca.shu.ui.chameleon.objects;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.awt.geom.Point2D;
 
 import javax.swing.SwingUtilities;
 
@@ -9,20 +8,19 @@ import ca.shu.ui.chameleon.actions.flickr.ExpandNetworkAction;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
+import ca.shu.ui.chameleon.world.ChameleonStyle;
 import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
+import ca.shu.ui.lib.activities.Fader;
 import ca.shu.ui.lib.objects.RectangularEdge;
 import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
 import ca.shu.ui.lib.world.Interactable;
-
-import com.aetrion.flickr.people.User;
-
 import edu.umd.cs.piccolo.nodes.PImage;
 
-public class Person extends ModelObject implements IUser, Interactable {
+public class Person extends ModelObject implements Interactable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -32,7 +30,7 @@ public class Person extends ModelObject implements IUser, Interactable {
 
 	private PImage profileImage;
 
-	public Person(User user) {
+	public Person(IUser user) {
 		super(user);
 
 		(new Thread(new Runnable() {
@@ -46,13 +44,8 @@ public class Person extends ModelObject implements IUser, Interactable {
 
 	private void loadProfileImage() {
 
-		try {
-			profileImage = new PImage(new URL(getModel().getBuddyIconUrl()));
-			profileImage.setPickable(false);
-
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e.getMessage());
-		}
+		profileImage = new PImage(getModel().getProfilePictureURL());
+		profileImage.setPickable(false);
 
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
@@ -70,7 +63,7 @@ public class Person extends ModelObject implements IUser, Interactable {
 	@Override
 	protected void constructMenu(PopupMenuBuilder menu) {
 		super.constructMenu(menu);
-		ChameleonMenus.constructMenu(this, menu);
+		ChameleonMenus.constructMenu(this, getModel(), menu);
 
 		if (getWorldLayer() instanceof SocialGround) {
 			SocialGround ground = (SocialGround) getWorldLayer();
@@ -90,30 +83,13 @@ public class Person extends ModelObject implements IUser, Interactable {
 	}
 
 	@Override
-	public User getModel() {
-		return (User) super.getModel();
-	}
-
-	public URL getProfilePictureURL() {
-		try {
-			return new URL(getModel().getBuddyIconUrl());
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	public String getRealName() {
-		return getModel().getRealName();
+	public IUser getModel() {
+		return (IUser) super.getModel();
 	}
 
 	@Override
 	public String getTypeName() {
 		return "Flickr User";
-	}
-
-	public String getUserName() {
-		return getModel().getUsername();
 	}
 
 	public boolean isPhotosEnabled() {
@@ -132,7 +108,21 @@ public class Person extends ModelObject implements IUser, Interactable {
 						.createUserSource(getModel().getId(), true);
 				PhotoCollage collage = new PhotoCollage(flickrPhotos);
 				collage.setScale(0.5f);
+				collage.setTransparency(0f);
 				addChild(collage);
+
+				Point2D size = collage.localToParent(new Point2D.Double(collage
+						.getWidth(), collage.getHeight()));
+
+				collage.setOffset(-size.getX() / 2d, -size.getY() / 2d);
+				collage
+						.animateToPosition(getBounds().getMaxX() + 5, collage
+								.getOffset().getY(),
+								ChameleonStyle.MEDIUM_ANIMATION_MS);
+
+				addActivity(new Fader(collage, ChameleonStyle.MEDIUM_ANIMATION_MS,
+						1f));
+
 				collageShadow = new RectangularEdge(this, collage);
 				addChild(0, collageShadow);
 			}
@@ -161,4 +151,5 @@ public class Person extends ModelObject implements IUser, Interactable {
 		}
 
 	}
+
 }

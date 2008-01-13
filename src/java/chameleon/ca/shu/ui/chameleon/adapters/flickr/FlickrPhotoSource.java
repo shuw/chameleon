@@ -121,7 +121,7 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 
 	public File getCachedFolder() {
 		File cachedFolder = new File(FlickrAPI.FLICKR_CACHE_FOLDER_NAME + "/"
-				+ getCrawlerType());
+				+ getType());
 
 		if (!cachedFolder.exists()) {
 			cachedFolder.mkdirs();
@@ -130,9 +130,12 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 		return cachedFolder;
 	}
 
-	protected abstract String getCrawlerType();
+	protected abstract String getType();
 
-	public CrawlerState getCrawlerState() {
+	public CrawlerState getState() {
+		if (state == null) {
+			state = initState();
+		}
 		return state;
 	}
 
@@ -175,7 +178,7 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 		return thread;
 	}
 
-	public abstract CrawlerState initCrawlerState();
+	public abstract CrawlerState initState();
 
 	static final String CRAWLER_STATE_FILE_NAME = "crawlerState.data";
 
@@ -241,7 +244,7 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 			initSource();
 
 			if (state == null) {
-				state = initCrawlerState();
+				state = initState();
 			}
 
 			while (true && isRetrieverAlive) {
@@ -329,7 +332,7 @@ class InterestingSource extends FlickrPhotoSource {
 	protected synchronized PhotoList getPhotoList() throws FlickrException,
 			IOException, SAXException, SourceEmptyException {
 
-		CrawlerState state = getCrawlerState();
+		CrawlerState state = getState();
 
 		PhotoList list = null;
 		try {
@@ -359,14 +362,14 @@ class InterestingSource extends FlickrPhotoSource {
 	}
 
 	@Override
-	public String getCrawlerType() {
+	public String getType() {
 		return "IntPhotos";
 	}
 
 	@Override
-	public CrawlerState initCrawlerState() {
+	public CrawlerState initState() {
 		System.out.println("reseting state" + (new Date()));
-		return new CrawlerState(getCrawlerType(), new Date(), 1, 0,
+		return new CrawlerState(getType(), new Date(), 1, 0,
 				GET_PER_BATCH);
 	}
 
@@ -379,7 +382,7 @@ class RecentSource extends FlickrPhotoSource {
 	protected synchronized PhotoList getPhotoList() throws FlickrException,
 			IOException, SAXException, SourceEmptyException {
 
-		CrawlerState state = getCrawlerState();
+		CrawlerState state = getState();
 
 		PhotoList list = null;
 		try {
@@ -396,14 +399,14 @@ class RecentSource extends FlickrPhotoSource {
 	}
 
 	@Override
-	public String getCrawlerType() {
+	public String getType() {
 		return "RecentPhotos";
 	}
 
 	@Override
-	public CrawlerState initCrawlerState() {
+	public CrawlerState initState() {
 		System.out.println("reseting state" + (new Date()));
-		return new CrawlerState(getCrawlerType(), new Date(), 1, 0,
+		return new CrawlerState(getType(), new Date(), 1, 0,
 				GET_PER_BATCH);
 	}
 
@@ -418,12 +421,12 @@ class TestRetriever extends FlickrPhotoSource {
 	}
 
 	@Override
-	public String getCrawlerType() {
+	public String getType() {
 		return "Test";
 	}
 
 	@Override
-	public CrawlerState initCrawlerState() {
+	public CrawlerState initState() {
 		return new CrawlerState("Test", new Date(), 1, 1, 50);
 	}
 
@@ -481,13 +484,13 @@ class UserSource extends FlickrPhotoSource {
 	}
 
 	@Override
-	public String getCrawlerType() {
+	public String getType() {
 		return "UserPhotos/" + userId;
 	}
 
 	@Override
-	public CrawlerState initCrawlerState() {
-		return new CrawlerState(getCrawlerType(), new Date(), 1, 0,
+	public CrawlerState initState() {
+		return new CrawlerState(getType(), new Date(), 1, 0,
 				GET_PER_BATCH);
 	}
 }

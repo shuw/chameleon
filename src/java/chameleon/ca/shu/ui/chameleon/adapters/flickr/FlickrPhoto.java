@@ -59,7 +59,7 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 		super();
 		this.myPhotoId = photoId;
 		this.flickrAPI = FlickrAPI.create();
-		
+
 		getPhoto(); // loads the photo
 	}
 
@@ -227,6 +227,15 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 			}
 		}
 		return sizes;
+	}
+
+	public URL getUrl() {
+		try {
+			return new URL(getPhoto().getUrl());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 }
