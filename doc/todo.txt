@@ -1,14 +1,22 @@
+Done:
+
 TODO:
+
+Rendering html in Photo descriptions 
+
+Open up social network in new window, show person's profile pic in window header
 
 Show photo pop up, show comments
 
-Limit external string sizes in UI (avoid long user names)
+Limit external string sizes in UI (shorten long descriptions)
 
 modify TooltipParts to return WorldObject
 
 open new worlds within the world
 
 allow objects to be dragged out of Photo Collage
+
+
 
 
 Show warning message when source has no photos

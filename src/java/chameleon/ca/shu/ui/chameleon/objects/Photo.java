@@ -5,7 +5,6 @@ import java.io.File;
 
 import javax.swing.SwingUtilities;
 
-import ca.neo.ui.models.tooltips.ITooltipPart;
 import ca.neo.ui.models.tooltips.TooltipBuilder;
 import ca.neo.ui.models.tooltips.TooltipProperty;
 import ca.shu.ui.chameleon.adapters.IPhoto;
@@ -16,15 +15,17 @@ import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
+import ca.shu.ui.lib.world.IWorldObject;
 import ca.shu.ui.lib.world.Interactable;
+import ca.shu.ui.lib.world.piccolo.WorldObjectImpl;
+import ca.shu.ui.lib.world.piccolo.objects.Wrapper;
+import ca.shu.ui.lib.world.piccolo.primitives.Image;
+import ca.shu.ui.lib.world.piccolo.primitives.Text;
 
 import com.aetrion.flickr.photos.Size;
 
-import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
 import edu.umd.cs.piccolo.event.PInputEvent;
-import edu.umd.cs.piccolo.nodes.PImage;
-import edu.umd.cs.piccolo.nodes.PText;
 import edu.umd.cs.piccolox.handles.PBoundsHandle;
 
 /**
@@ -38,11 +39,11 @@ public class Photo extends ModelObject implements Interactable {
 
 	private int currentSize;
 
-	private PNode image;
+	private Wrapper imageWr;
 
-	private PNode imageHolder;
+	private IWorldObject imageHolder;
 
-	private PText loadingText;
+	private Text loadingText;
 
 	private PhotoInfoFrame photoInfoFrame;
 
@@ -52,7 +53,9 @@ public class Photo extends ModelObject implements Interactable {
 		super(photoWr);
 		this.proxy = photoWr;
 
-		imageHolder = new PNode();
+		imageHolder = new WorldObjectImpl();
+		imageHolder.setPickable(false);
+
 		this.addChild(imageHolder);
 		setName(getModel().getTitle());
 		addInputEventListener(new PhotoEventHandler(this));
@@ -129,7 +132,7 @@ public class Photo extends ModelObject implements Interactable {
 	}
 
 	public boolean isImageLoaded() {
-		return (image != null);
+		return (imageWr != null);
 	}
 
 	public static final String CACHE_FOLDER_NAME = "ImageCache";
@@ -155,17 +158,17 @@ public class Photo extends ModelObject implements Interactable {
 			public void run() {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
-						loadingText = new PText("Loading Image...");
+						loadingText = new Text("Loading Image...");
 						loadingText.setOffset(IMG_BORDER_PX, IMG_BORDER_PX);
 						loadingText.setFont(Style.FONT_XLARGE);
 						loadingText.setPaint(Style.COLOR_BACKGROUND);
 						loadingText.setTextPaint(Style.COLOR_FOREGROUND);
-						Photo.this.addChild(loadingText);
+						addChild(loadingText);
 
 					}
 				});
 
-				PImage imageInner = null;
+				Image imageInner = null;
 
 				/*
 				 * Tries to find image in cache first
@@ -182,17 +185,15 @@ public class Photo extends ModelObject implements Interactable {
 							.toString(), cachedImage.toString());
 				}
 
-				imageInner = new PImage(cachedImage.toString());
+				imageInner = new Image(cachedImage.toString());
 
 				// create a node to hold the image
-				image = new PNode();
 
 				imageInner.setOffset(IMG_BORDER_PX, IMG_BORDER_PX);
-				image.addChild(imageInner);
-				image.setPickable(false);
-				image.setChildrenPickable(false);
+				imageWr = new Wrapper(imageInner);
+				imageWr.setChildrenPickable(false);
 
-				image.setBounds(0, 0,
+				imageWr.setBounds(0, 0,
 						(float) (imageInner.getWidth() + IMG_BORDER_PX * 2),
 						(float) (imageInner.getHeight() + IMG_BORDER_PX * 2));
 
@@ -202,11 +203,14 @@ public class Photo extends ModelObject implements Interactable {
 					public void run() {
 						loadingText.removeFromParent();
 						imageHolder.removeAllChildren();
-						imageHolder.addChild(image);
+						imageHolder.addChild(imageWr);
 
 						synchronized (Photo.this) {
-							Photo.this.setBounds(Photo.this.globalToLocal(image
-									.localToGlobal(image.getBounds())));
+							Photo.this
+									.setBounds(Photo.this
+											.globalToLocal(imageWr
+													.localToGlobal(imageWr
+															.getBounds())));
 							Photo.this.notifyAll();
 						}
 					}
@@ -282,7 +286,7 @@ class PhotoEventHandler extends PBasicInputEventHandler {
 	public void mouseEntered(PInputEvent event) {
 		// TODO Auto-generated method stub
 		super.mouseEntered(event);
-		PBoundsHandle.addBoundsHandlesTo(photo);
+		PBoundsHandle.addBoundsHandlesTo(photo.getPiccolo());
 	}
 
 	@Override
@@ -290,7 +294,7 @@ class PhotoEventHandler extends PBasicInputEventHandler {
 		// TODO Auto-generated method stub
 		super.mouseExited(event);
 
-		PBoundsHandle.removeBoundsHandlesFrom(photo);
+		PBoundsHandle.removeBoundsHandlesFrom(photo.getPiccolo());
 	}
 
 }

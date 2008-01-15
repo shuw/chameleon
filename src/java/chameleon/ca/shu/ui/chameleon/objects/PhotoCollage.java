@@ -1,25 +1,24 @@
 package ca.shu.ui.chameleon.objects;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Stack;
 
 import ca.shu.ui.chameleon.adapters.IPhoto;
-import ca.shu.ui.chameleon.adapters.IStreamingSourceException;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
+import ca.shu.ui.chameleon.adapters.IStreamingSourceException;
 import ca.shu.ui.chameleon.adapters.SourceEmptyException;
 import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
-import ca.shu.ui.lib.activities.Fader;
-import ca.shu.ui.lib.objects.Border;
 import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.UserMessages;
 import ca.shu.ui.lib.util.Util;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
-import ca.shu.ui.lib.world.WorldObject;
-import edu.umd.cs.piccolo.PNode;
+import ca.shu.ui.lib.world.IWorldObject;
+import ca.shu.ui.lib.world.activities.Fader;
+import ca.shu.ui.lib.world.piccolo.WorldObjectImpl;
+import ca.shu.ui.lib.world.piccolo.objects.Border;
 import edu.umd.cs.piccolo.activities.PActivity;
 
 /**
@@ -287,7 +286,7 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 	}
 }
 
-class Collage extends WorldObject {
+class Collage extends WorldObjectImpl {
 
 	private static final int ADD_PHOTO_TIME_MS = 800;
 
@@ -310,13 +309,11 @@ class Collage extends WorldObject {
 	}
 
 	private Collection<Photo> getChildrenPhotos() {
-		Collection<Photo> photos = new ArrayList<Photo>(getChildrenCount());
+		LinkedList<Photo> photos = new LinkedList<Photo>();
+		for (IWorldObject wo : getChildren()) {
 
-		Iterator<?> it = getChildrenIterator();
-		while (it.hasNext()) {
-			Object obj = it.next();
-			if (obj instanceof Photo) {
-				photos.add((Photo) obj);
+			if (wo instanceof Photo) {
+				photos.add((Photo) wo);
 			}
 		}
 		return photos;
@@ -332,10 +329,10 @@ class Collage extends WorldObject {
 
 				// its moved off the screen
 				if (moveTo < 0) {
-					addActivity(new Fader(photo, 1000, 0f));
+					getPiccolo().addActivity(new Fader(photo, 1000, 0f));
 					photo.animateToPosition(photo.getOffset().getX(), photo
 							.getOffset().getY() - 500, 1000);
-					addActivity(new RemovePhoto(1000, photo));
+					getPiccolo().addActivity(new RemovePhoto(1000, photo));
 				}
 			}
 		}
@@ -531,9 +528,9 @@ class Collage extends WorldObject {
 	}
 
 	class RemovePhoto extends PActivity {
-		PNode photoToRemove;
+		IWorldObject photoToRemove;
 
-		public RemovePhoto(long aDuration, PNode photoToRemove) {
+		public RemovePhoto(long aDuration, IWorldObject photoToRemove) {
 			super(aDuration);
 			this.photoToRemove = photoToRemove;
 		}

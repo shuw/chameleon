@@ -13,12 +13,12 @@ import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
-import ca.shu.ui.lib.activities.Fader;
-import ca.shu.ui.lib.objects.RectangularEdge;
 import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
 import ca.shu.ui.lib.world.Interactable;
-import edu.umd.cs.piccolo.nodes.PImage;
+import ca.shu.ui.lib.world.activities.Fader;
+import ca.shu.ui.lib.world.piccolo.objects.RectangularEdge;
+import ca.shu.ui.lib.world.piccolo.primitives.Image;
 
 public class Person extends ModelObject implements Interactable {
 
@@ -28,7 +28,7 @@ public class Person extends ModelObject implements Interactable {
 
 	private PhotoCollage myPhotoCollage = null;
 
-	private PImage profileImage;
+	private Image profileImage;
 
 	public Person(IUser user) {
 		super(user);
@@ -44,7 +44,7 @@ public class Person extends ModelObject implements Interactable {
 
 	private void loadProfileImage() {
 
-		profileImage = new PImage(getModel().getProfilePictureURL());
+		profileImage = new Image(getModel().getProfilePictureURL());
 		profileImage.setPickable(false);
 
 		SwingUtilities.invokeLater(new Runnable() {
@@ -120,11 +120,11 @@ public class Person extends ModelObject implements Interactable {
 								.getOffset().getY(),
 								ChameleonStyle.MEDIUM_ANIMATION_MS);
 
-				addActivity(new Fader(collage, ChameleonStyle.MEDIUM_ANIMATION_MS,
-						1f));
+				addActivity(new Fader(collage,
+						ChameleonStyle.MEDIUM_ANIMATION_MS, 1f));
 
 				collageShadow = new RectangularEdge(this, collage);
-				addChild(0, collageShadow);
+				addChild(collageShadow, 0);
 			}
 		} else {
 			if (myPhotoCollage != null) {

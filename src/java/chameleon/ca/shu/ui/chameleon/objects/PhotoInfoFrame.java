@@ -3,13 +3,13 @@ package ca.shu.ui.chameleon.objects;
 import javax.swing.SwingUtilities;
 
 import ca.shu.ui.chameleon.adapters.IPhoto;
-import ca.shu.ui.lib.objects.AbstractButton;
-import ca.shu.ui.lib.objects.TextButton;
-import ca.shu.ui.lib.world.WorldObject;
-import edu.umd.cs.piccolo.nodes.PImage;
-import edu.umd.cs.piccolo.nodes.PPath;
+import ca.shu.ui.lib.world.piccolo.WorldObjectImpl;
+import ca.shu.ui.lib.world.piccolo.objects.AbstractButton;
+import ca.shu.ui.lib.world.piccolo.objects.TextButton;
+import ca.shu.ui.lib.world.piccolo.primitives.Image;
+import ca.shu.ui.lib.world.piccolo.primitives.Path;
 
-public class PhotoInfoFrame extends WorldObject {
+public class PhotoInfoFrame extends WorldObjectImpl {
 
 	private static final long serialVersionUID = 1L;
 
@@ -28,14 +28,14 @@ public class PhotoInfoFrame extends WorldObject {
 
 	protected void initialize() {
 
-		PPath rectangle = PPath.createRectangle(0, 0, 500, 500);
-		this.addChild(rectangle);
+		Path rectangle = Path.createRectangle(0, 0, 500, 500);
+		addChild(rectangle);
 
-		PImage profileImage;
-		profileImage = new PImage(photoInterface.getProfilePicUrl());
+		Image profileImage;
+		profileImage = new Image(photoInterface.getProfilePicUrl());
 		profileImage.translate(5, 5);
 
-		this.addChild(profileImage);
+		addChild(profileImage);
 
 		createButtons();
 	}

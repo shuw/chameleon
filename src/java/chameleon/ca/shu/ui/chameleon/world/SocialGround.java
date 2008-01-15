@@ -7,10 +7,10 @@ import java.util.Random;
 
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.objects.Person;
-import ca.shu.ui.lib.activities.Fader;
-import ca.shu.ui.lib.objects.PEdge;
 import ca.shu.ui.lib.util.Util;
+import ca.shu.ui.lib.world.activities.Fader;
 import ca.shu.ui.lib.world.elastic.ElasticGround;
+import ca.shu.ui.lib.world.piccolo.primitives.PXEdge;
 
 /**
  * Ground which can hold a social network
@@ -78,7 +78,7 @@ public class SocialGround extends ElasticGround {
 			/*
 			 * Add an edge if the relationship didn't exist before
 			 */
-			PEdge edge = new PEdge(userA, userB, false);
+			PXEdge edge = new PXEdge(userA, userB, false);
 			addEdge(edge);
 		}
 		return true;
