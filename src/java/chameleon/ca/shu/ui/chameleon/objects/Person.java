@@ -1,6 +1,7 @@
 package ca.shu.ui.chameleon.objects;
 
 import java.awt.geom.Point2D;
+import java.lang.ref.WeakReference;
 
 import javax.swing.SwingUtilities;
 
@@ -17,7 +18,11 @@ import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
 import ca.shu.ui.lib.world.Interactable;
 import ca.shu.ui.lib.world.activities.Fader;
+import ca.shu.ui.lib.world.elastic.ElasticGround;
+import ca.shu.ui.lib.world.elastic.ElasticWorld;
 import ca.shu.ui.lib.world.piccolo.objects.RectangularEdge;
+import ca.shu.ui.lib.world.piccolo.objects.Window;
+import ca.shu.ui.lib.world.piccolo.objects.Window.WindowState;
 import ca.shu.ui.lib.world.piccolo.primitives.Image;
 
 public class Person extends ModelObject implements Interactable {
@@ -76,6 +81,30 @@ public class Person extends ModelObject implements Interactable {
 		} else {
 			menu.addAction(new SetPhotosEnabledAction("Hide photos", true));
 		}
+
+		if (!isWindowEnabled()) {
+			menu.addAction(new SetWindowEnabled("Open new window", true));
+		} else {
+			menu.addAction(new SetWindowEnabled("Close window", false));
+		}
+
+	}
+
+	class SetWindowEnabled extends StandardAction {
+		private boolean enabled;
+
+		public SetWindowEnabled(String description, boolean enabled) {
+			super(description);
+			this.enabled = enabled;
+		}
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected void action() throws ActionException {
+			setWindowEnabled(enabled);
+		}
+
 	}
 
 	public String getId() {
@@ -94,6 +123,41 @@ public class Person extends ModelObject implements Interactable {
 
 	public boolean isPhotosEnabled() {
 		if (myPhotoCollage != null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private WeakReference<Window> windowRef = new WeakReference<Window>(null);
+
+	/**
+	 * @return Viewer Window
+	 */
+	protected void setWindowEnabled(boolean enabled) {
+
+		if (enabled) {
+			if (windowRef.get() == null || windowRef.get().isDestroyed()) {
+
+				ElasticWorld privateWorld = new PersonWorld(getName()
+						+ "'s World", getModel());
+				Window window = new Window(this, privateWorld);
+
+				getWorld().zoomToObject(window);
+				windowRef = new WeakReference<Window>(window);
+			} else if (windowRef.get() != null
+					&& windowRef.get().getWindowState() == WindowState.MINIMIZED) {
+				windowRef.get().restoreSavedWindow();
+			}
+		} else {
+			if (windowRef.get() != null) {
+				windowRef.get().destroy();
+			}
+		}
+	}
+
+	protected boolean isWindowEnabled() {
+		if (windowRef.get() != null && !windowRef.get().isDestroyed()) {
 			return true;
 		} else {
 			return false;
@@ -149,6 +213,38 @@ public class Person extends ModelObject implements Interactable {
 		protected void action() throws ActionException {
 			setPhotosEnabled(enabled);
 		}
+
+	}
+
+}
+
+/**
+ * A Microcosm world of a person
+ * 
+ * @author Shu Wu
+ */
+class PersonWorld extends ElasticWorld {
+
+	public PersonWorld(String name, IUser user) {
+		super(name, new SocialGround());
+
+		Person person = new Person(user);
+		getGround().addPerson(person);
+
+		StandardAction expandNetwork = new ExpandNetworkAction(
+				"Expanding network", 2, (SocialGround) getGround(), person);
+
+		expandNetwork.doAction();
+	}
+
+	@Override
+	public SocialGround getGround() {
+		return (SocialGround) super.getGround();
+	}
+
+	@Override
+	protected void constructMenu(PopupMenuBuilder menu) {
+		super.constructMenu(menu);
 
 	}
 

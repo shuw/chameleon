@@ -36,11 +36,11 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 
 	private static final int WIDTH_INTERVAL = 400;
 
-	private boolean autoScrollEnabled = true;
+	private boolean autoRetrieveEnabled = true;
 
 	private Thread autoScrollThread = null;
 
-	private Collage collage;
+	private CollageInner collage;
 
 	private IStreamingPhotoSource photoSource;
 
@@ -53,19 +53,21 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 	public PhotoCollage(IStreamingPhotoSource photoSource, double collageWidth,
 			double collageHeight) {
 		super(photoSource);
+
+		setName(photoSource.getName());
+
 		setPaint(Style.COLOR_BACKGROUND);
 
 		this.photoSource = photoSource;
 
-		collage = new Collage();
+		collage = new CollageInner();
 		collage.setBounds(0, 0, collageWidth, collageHeight);
 		addChild(collage);
 
 		addChild(new Border(this, Style.COLOR_FOREGROUND));
 
 		setBounds(getFullBounds());
-
-		setAutoScroll(true);
+		setAutoRetrieve(true);
 	}
 
 	private boolean canChangeScrollSpeed(boolean positive) {
@@ -140,22 +142,13 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 		}
 	}
 
-	public boolean addPhoto(IPhoto photo) {
-		return collage.addPhoto(photo);
-
-	}
-
-	public void getMorePhotos(int count) {
-		photoSource.getPhotosAsync(count, this);
-	}
-
 	@Override
 	public String getTypeName() {
 		return "Photo Collage";
 	}
 
 	public boolean isAutoScrollEnabled() {
-		return autoScrollEnabled;
+		return autoRetrieveEnabled;
 	}
 
 	@Override
@@ -164,21 +157,15 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 		super.prepareForDestroy();
 	}
 
-	public void removePhoto(Photo photo) {
-		collage.removePhoto(photo);
-	}
+	public void setAutoRetrieve(boolean enabled) {
+		this.autoRetrieveEnabled = enabled;
 
-	public void setAutoScroll(boolean enabled) {
-		this.autoScrollEnabled = enabled;
-
-		if (autoScrollEnabled) {
+		if (autoRetrieveEnabled) {
 			if ((autoScrollThread == null) || !autoScrollThread.isAlive()) {
-				autoScrollThread = new AutoScrollThread();
+				autoScrollThread = new AutoRetrieverThread();
 				autoScrollThread.start();
 			}
 		}
-
-		// autoScrollBtn.setText("NadaHSHSHS");
 	}
 
 	public void setSourceState(SourceState state) {
@@ -200,29 +187,30 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 		}
 	}
 
-	class AutoScrollThread extends Thread {
-		public AutoScrollThread() {
+	class AutoRetrieverThread extends Thread {
+		public AutoRetrieverThread() {
 			super("Auto Scroller");
 		}
 
 		@Override
 		public void run() {
-			while (autoScrollEnabled && !PhotoCollage.this.isDestroyed()) {
+			while (autoRetrieveEnabled && !PhotoCollage.this.isDestroyed()) {
+				if (!collage.isImageQueueIsFull()) {
+					try {
+						Collection<IPhoto> photos;
+						photos = photoSource.getPhotos(1);
 
-				try {
-					Collection<IPhoto> photos;
+						if (photos.size() > 0) {
+							collage.addPhoto(photos.iterator().next());
+						}
 
-					photos = photoSource.getPhotos(1);
-
-					if (photos.size() > 0) {
-						addPhoto(photos.iterator().next());
+					} catch (IStreamingSourceException e1) {
+						setSourceState(SourceState.ERROR);
+						break;
+					} catch (SourceEmptyException e) {
+						showPopupMessage("Source empty, turning autoscroll off");
+						break;
 					}
-				} catch (IStreamingSourceException e1) {
-					setSourceState(SourceState.ERROR);
-					break;
-				} catch (SourceEmptyException e) {
-					System.out.println("Source empty, turning autoscroll off");
-					break;
 				}
 
 				try {
@@ -231,7 +219,7 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 					e.printStackTrace();
 				}
 			}
-			setAutoScroll(false);
+			setAutoRetrieve(false);
 		}
 	}
 
@@ -280,23 +268,23 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 
 		@Override
 		protected void action() throws ActionException {
-			setAutoScroll(enabled);
+			setAutoRetrieve(enabled);
 		}
 
 	}
+
 }
 
-class Collage extends WorldObjectImpl {
-
+class CollageInner extends WorldObjectImpl {
 	private static final int ADD_PHOTO_TIME_MS = 800;
-
 	private static final long serialVersionUID = 1L;
+	private static final int IMAGE_QUEUE_SIZE = 10;
 
 	private Object animationLock = new Object();
 
 	private Stack<Photo> photoQueue;
 
-	public Collage() {
+	public CollageInner() {
 		super();
 		this.setBounds(0, 0, 1500, 1500);
 		photoQueue = new Stack<Photo>();
@@ -311,9 +299,10 @@ class Collage extends WorldObjectImpl {
 	private Collection<Photo> getChildrenPhotos() {
 		LinkedList<Photo> photos = new LinkedList<Photo>();
 		for (IWorldObject wo : getChildren()) {
-
-			if (wo instanceof Photo) {
-				photos.add((Photo) wo);
+			if (!wo.isSelected()) {
+				if (wo instanceof Photo) {
+					photos.add((Photo) wo);
+				}
 			}
 		}
 		return photos;
@@ -322,13 +311,13 @@ class Collage extends WorldObjectImpl {
 	private void movePhotosBy(Collection<Photo> photos, double moveBy) {
 		for (Photo photo : photos) {
 			if (!photo.isSelected()) {
-				double moveTo = photo.getOffset().getY() - moveBy;
+				double moveToY = photo.getOffset().getY() - moveBy;
 
 				photo.animateToPositionScaleRotation(photo.getOffset().getX(),
-						moveTo, 1, 0, 1000);
+						moveToY, 1, 0, 1000);
 
 				// its moved off the screen
-				if (moveTo < 0) {
+				if (moveToY < 0) {
 					getPiccolo().addActivity(new Fader(photo, 1000, 0f));
 					photo.animateToPosition(photo.getOffset().getX(), photo
 							.getOffset().getY() - 500, 1000);
@@ -435,8 +424,6 @@ class Collage extends WorldObjectImpl {
 				movePhotosBy(photosToInsert, moveBy);
 			}
 		}
-		// doCollageLayout(getCollageWidth(), true);
-
 	}
 
 	@Override
@@ -452,17 +439,23 @@ class Collage extends WorldObjectImpl {
 		layoutPhotos(photos, false);
 	}
 
+	public boolean isImageQueueIsFull() {
+		if (photoQueue.size() >= IMAGE_QUEUE_SIZE) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
 	public boolean addPhoto(IPhoto p) {
 		synchronized (photoQueue) {
-			if (photoQueue.size() > 10) {
-				return false;
-			}
 
 			// create the GPhoto object and wait for the image to load
 			Photo photo = new Photo(p);
 			synchronized (photo) {
 				try {
-					while (!photo.isImageLoaded()) {
+					while (!photo.isLoaded()) {
 						photo.wait();
 					}
 				} catch (InterruptedException e) {
@@ -503,7 +496,7 @@ class Collage extends WorldObjectImpl {
 		@Override
 		@SuppressWarnings("unchecked")
 		public void run() {
-			while (!Collage.this.isDestroyed()) {
+			while (!CollageInner.this.isDestroyed()) {
 				try {
 					synchronized (photoQueue) {
 						if (photoQueue.size() > 0) {
@@ -539,10 +532,7 @@ class Collage extends WorldObjectImpl {
 		protected void activityFinished() {
 			// TODO Auto-generated method stub
 			super.activityFinished();
-			if (photoToRemove.getParent() != null) {
-				photoToRemove.getParent().removeChild(photoToRemove);
-			}
+			photoToRemove.destroy();
 		}
-
 	}
 }

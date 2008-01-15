@@ -19,6 +19,11 @@ import ca.shu.ui.lib.world.piccolo.primitives.PXEdge;
  */
 public class SocialGround extends ElasticGround {
 
+	public SocialGround() {
+		super();
+		setElasticEnabled(true);
+	}
+
 	private static final long serialVersionUID = 1L;
 
 	private Hashtable<String, Person> personTable = new Hashtable<String, Person>();

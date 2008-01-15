@@ -207,6 +207,7 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 			try {
 				myPhoto = flickrAPI.getPhotosInterface().getInfo(myPhotoId, "");
 			} catch (FlickrException e) {
+				myPhoto = new Photo();
 				throw e;
 			} catch (Exception e) {
 				e.printStackTrace();

@@ -2,9 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src/java/chameleon"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/simulator-ui"/>
 	<classpathentry kind="lib" path="lib/flickrapi-1.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/piccolo-1.2"/>
 	<classpathentry kind="lib" path="lib/BrowserLauncher2-10rc4.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/simulator-ui"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

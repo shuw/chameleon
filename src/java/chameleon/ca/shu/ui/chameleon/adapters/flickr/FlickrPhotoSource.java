@@ -1,6 +1,5 @@
 package ca.shu.ui.chameleon.adapters.flickr;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -15,7 +14,6 @@ import ca.shu.ui.chameleon.adapters.IPhoto;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IStreamingSourceException;
 import ca.shu.ui.chameleon.adapters.SourceEmptyException;
-import ca.shu.ui.chameleon.objects.IStreamingPhotoHolder;
 
 import com.aetrion.flickr.Flickr;
 import com.aetrion.flickr.FlickrException;
@@ -32,8 +30,10 @@ import com.aetrion.flickr.photos.Size;
 public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 
 	private static int BUFFER_SIZE = 4;
-
 	public static int DEFAULT_PHOTO_SIZE = Size.SMALL;
+	static final String CRAWLER_STATE_FILE_NAME = "crawlerState.data";
+
+	static final int GET_PER_BATCH = 50;
 
 	public static FlickrPhotoSource createInterestingSource() {
 		return new InterestingSource();
@@ -80,27 +80,27 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 		return null;
 	}
 
-	private CrawlerState state;
+	private Flickr flickrAPI;
 
 	private boolean isRetrieverAlive = true;
 
 	private Vector<FlickrPhoto> photos;
 
-	private PicsRetriever retriever = null;
+	private FlickPhotoRetriever retriever = null;
 
-	private Flickr flickrAPI;
-
-	protected Flickr getAPI() {
-		return flickrAPI;
-	}
+	private CrawlerState state;
 
 	protected FlickrPhotoSource() {
 		super();
 		flickrAPI = FlickrAPI.create();
 
 		photos = new Vector<FlickrPhoto>();
-		retriever = new PicsRetriever();
+		retriever = new FlickPhotoRetriever();
 		retriever.start();
+	}
+
+	protected Flickr getAPI() {
+		return flickrAPI;
 	}
 
 	protected abstract PhotoList getPhotoList() throws FlickrException,
@@ -117,26 +117,6 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 		synchronized (photos) {
 			photos.notifyAll();
 		}
-	}
-
-	public File getCachedFolder() {
-		File cachedFolder = new File(FlickrAPI.FLICKR_CACHE_FOLDER_NAME + "/"
-				+ getType());
-
-		if (!cachedFolder.exists()) {
-			cachedFolder.mkdirs();
-		}
-
-		return cachedFolder;
-	}
-
-	protected abstract String getType();
-
-	public CrawlerState getState() {
-		if (state == null) {
-			state = initState();
-		}
-		return state;
 	}
 
 	public IPhoto getPhoto() throws IStreamingSourceException,
@@ -170,70 +150,21 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 		}
 	}
 
-	public Thread getPhotosAsync(int count, IStreamingPhotoHolder photoHolder) {
-		Thread thread = new AsyncPhotoAdder(photoHolder, count);
-
-		thread.start();
-
-		return thread;
+	public CrawlerState getState() {
+		if (state == null) {
+			state = initState();
+		}
+		return state;
 	}
 
-	public abstract CrawlerState initState();
-
-	static final String CRAWLER_STATE_FILE_NAME = "crawlerState.data";
-
-	class AsyncPhotoAdder extends Thread {
-		int numOfPhotosToAdd;
-
-		IStreamingPhotoHolder photoHolder;
-
-		public AsyncPhotoAdder(IStreamingPhotoHolder photoHolder,
-				int numOfPhotosToAdd) {
-			super();
-			this.numOfPhotosToAdd = numOfPhotosToAdd;
-			this.photoHolder = photoHolder;
-		}
-
-		@Override
-		public synchronized void run() {
-
-			while (true && isRetrieverAlive) {
-				try {
-					synchronized (photos) {
-						while ((numOfPhotosToAdd > 0) && (photos.size() > 0)) {
-							IPhoto photoToAdd = photos.remove(0);
-
-							// keep trying to add the photo until its full
-							while (true) {
-								if (photoHolder.addPhoto(photoToAdd)) {
-									numOfPhotosToAdd--;
-								} else {
-									Thread.sleep(3000);
-								}
-							}
-						}
-
-						// if > 0 then still need more photos, notify the
-						// threads which are adding photos
-						if (numOfPhotosToAdd > 0) {
-							photos.notifyAll();
-						}
-
-						photos.wait();
-					}
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-
-			}
-		}
-
+	public CrawlerState initState() {
+		return new CrawlerState(getName(), new Date(), 1, 0, GET_PER_BATCH);
 	}
 
-	class PicsRetriever extends Thread {
+	class FlickPhotoRetriever extends Thread {
 		int errorCount = 0;
 
-		public PicsRetriever() {
+		public FlickPhotoRetriever() {
 			super("Flickr Picture Retriever");
 		}
 
@@ -326,7 +257,7 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 }
 
 class InterestingSource extends FlickrPhotoSource {
-	static final int GET_PER_BATCH = 50;
+	private boolean getMostCurrentPhotos = true;
 
 	@Override
 	protected synchronized PhotoList getPhotoList() throws FlickrException,
@@ -336,10 +267,16 @@ class InterestingSource extends FlickrPhotoSource {
 
 		PhotoList list = null;
 		try {
-
-			list = getAPI().getInterestingnessInterface().getList(
-					state.currentDate, Extras.ALL_EXTRAS, GET_PER_BATCH,
-					state.currentPage);
+			if (getMostCurrentPhotos) {
+				getMostCurrentPhotos = false;
+				list = getAPI().getInterestingnessInterface().getList(
+						(Date) null, Extras.ALL_EXTRAS, GET_PER_BATCH,
+						state.currentPage);
+			} else {
+				list = getAPI().getInterestingnessInterface().getList(
+						state.currentDate, Extras.ALL_EXTRAS, GET_PER_BATCH,
+						state.currentPage);
+			}
 		} catch (FlickrException e) {
 			// no pictures available for that date
 			System.out.println(e + " , " + state.currentDate);
@@ -361,22 +298,13 @@ class InterestingSource extends FlickrPhotoSource {
 		return list;
 	}
 
-	@Override
-	public String getType() {
-		return "IntPhotos";
-	}
-
-	@Override
-	public CrawlerState initState() {
-		System.out.println("reseting state" + (new Date()));
-		return new CrawlerState(getType(), new Date(), 1, 0,
-				GET_PER_BATCH);
+	public String getName() {
+		return "Interesting Photos";
 	}
 
 }
 
 class RecentSource extends FlickrPhotoSource {
-	static final int GET_PER_BATCH = 50;
 
 	@Override
 	protected synchronized PhotoList getPhotoList() throws FlickrException,
@@ -398,16 +326,8 @@ class RecentSource extends FlickrPhotoSource {
 		return list;
 	}
 
-	@Override
-	public String getType() {
-		return "RecentPhotos";
-	}
-
-	@Override
-	public CrawlerState initState() {
-		System.out.println("reseting state" + (new Date()));
-		return new CrawlerState(getType(), new Date(), 1, 0,
-				GET_PER_BATCH);
+	public String getName() {
+		return "Recent Photos";
 	}
 
 }
@@ -420,20 +340,13 @@ class TestRetriever extends FlickrPhotoSource {
 		throw new SourceEmptyException("Empty");
 	}
 
-	@Override
-	public String getType() {
+	public String getName() {
 		return "Test";
-	}
-
-	@Override
-	public CrawlerState initState() {
-		return new CrawlerState("Test", new Date(), 1, 1, 50);
 	}
 
 }
 
 class UserSource extends FlickrPhotoSource {
-	static final int GET_PER_BATCH = 50;
 
 	String handle;
 
@@ -483,14 +396,8 @@ class UserSource extends FlickrPhotoSource {
 
 	}
 
-	@Override
-	public String getType() {
-		return "UserPhotos/" + userId;
+	public String getName() {
+		return "User Photos";
 	}
 
-	@Override
-	public CrawlerState initState() {
-		return new CrawlerState(getType(), new Date(), 1, 0,
-				GET_PER_BATCH);
-	}
 }
