@@ -5,6 +5,12 @@ Open up social network in new window, show person's profile pic in window header
 
 TODO:
 
+Figure out a way to layer objects algorthimically
+	Perhaps when a person is brought to the front, 
+	all his 1-st degree friends (within certain visual distance)
+	are brought to the front as well
+	
+
 In new social network window, show person's profile pic in window header
 
 Rendering html in Photo descriptions 

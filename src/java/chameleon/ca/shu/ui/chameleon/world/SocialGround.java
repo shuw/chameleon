@@ -21,6 +21,10 @@ public class SocialGround extends ElasticGround {
 
 	public SocialGround() {
 		super();
+		// peopleHolder = new WorldObjectImpl();
+		// peopleHolder.setSelectable(false);
+		// peopleHolder.setPickable(false);
+
 		setElasticEnabled(true);
 	}
 
@@ -47,6 +51,15 @@ public class SocialGround extends ElasticGround {
 			addChild(person);
 		}
 	}
+
+	//
+	// @Override
+	// public void setWorld(WorldImpl world) {
+	// if (getParent() != null) {
+	// getParent().addChild(peopleHolder);
+	// }
+	// super.setWorld(world);
+	//	}
 
 	public boolean addMutualRelationship(Person userA, Person userB) {
 

@@ -18,7 +18,6 @@ import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
 import ca.shu.ui.lib.world.Interactable;
 import ca.shu.ui.lib.world.activities.Fader;
-import ca.shu.ui.lib.world.elastic.ElasticGround;
 import ca.shu.ui.lib.world.elastic.ElasticWorld;
 import ca.shu.ui.lib.world.piccolo.objects.RectangularEdge;
 import ca.shu.ui.lib.world.piccolo.objects.Window;
