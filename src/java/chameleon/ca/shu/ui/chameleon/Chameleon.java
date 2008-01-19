@@ -11,13 +11,14 @@ import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs.FlickrDialogException;
 import ca.shu.ui.chameleon.objects.PhotoCollage;
 import ca.shu.ui.chameleon.world.SocialGround;
+import ca.shu.ui.chameleon.world.WorldX;
 import ca.shu.ui.lib.AppFrame;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.actions.UserCancelledException;
 import ca.shu.ui.lib.util.UIEnvironment;
 import ca.shu.ui.lib.util.menus.MenuBuilder;
-import ca.shu.ui.lib.world.elastic.ElasticGround;
+import ca.shu.ui.lib.world.elastic.ElasticWorld;
 
 public class Chameleon extends AppFrame {
 
@@ -128,8 +129,8 @@ public class Chameleon extends AppFrame {
 	}
 
 	@Override
-	protected ElasticGround createGround() {
-		return new SocialGround();
+	protected ElasticWorld createWorld() {
+		return new WorldX();
 	}
 
 	private SocialGround getChameleonHolder() {

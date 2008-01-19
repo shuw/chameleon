@@ -85,7 +85,7 @@ public class Photo extends ModelObject implements Interactable, IDroppable {
 				});
 
 		setName(getModel().getTitle());
-		addInputEventListener(new PhotoResizeHandler(this));
+		// addInputEventListener(new PhotoResizeHandler(this));
 
 		// Sets the default size of photos to the cached photo size
 		currentSize = FlickrPhotoSource.DEFAULT_PHOTO_SIZE;

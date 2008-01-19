@@ -30,7 +30,11 @@ public class FlickrUser implements IUser {
 	}
 
 	public String getRealName() {
-		return user.getRealName();
+		if (user.getRealName() != null) {
+			return user.getRealName();
+		} else {
+			return getUserName();
+		}
 	}
 
 	public String getUserName() {

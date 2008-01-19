@@ -8,6 +8,7 @@ import java.util.Random;
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.lib.util.Util;
+import ca.shu.ui.lib.world.IWorldObject;
 import ca.shu.ui.lib.world.activities.Fader;
 import ca.shu.ui.lib.world.elastic.ElasticGround;
 import ca.shu.ui.lib.world.piccolo.primitives.PXEdge;
@@ -21,9 +22,6 @@ public class SocialGround extends ElasticGround {
 
 	public SocialGround() {
 		super();
-		// peopleHolder = new WorldObjectImpl();
-		// peopleHolder.setSelectable(false);
-		// peopleHolder.setPickable(false);
 
 		setElasticEnabled(true);
 	}
@@ -39,10 +37,6 @@ public class SocialGround extends ElasticGround {
 	}
 
 	private void addPerson(Person person, boolean centerPos) {
-		if (personTable.get(person.getId()) != null) {
-			throw new InvalidParameterException();
-		}
-		personTable.put(person.getId(), person);
 
 		if (centerPos) {
 			person.setOffset(0, 0);
@@ -52,14 +46,35 @@ public class SocialGround extends ElasticGround {
 		}
 	}
 
-	//
-	// @Override
-	// public void setWorld(WorldImpl world) {
-	// if (getParent() != null) {
-	// getParent().addChild(peopleHolder);
-	// }
-	// super.setWorld(world);
-	//	}
+	@Override
+	public void childRemoved(IWorldObject wo) {
+		if (wo instanceof Person) {
+			Person person = (Person) wo;
+
+			personTable.remove(person.getId());
+		}
+
+		super.childRemoved(wo);
+	}
+
+	@Override
+	public void childAdded(IWorldObject wo) {
+		if (wo instanceof Person) {
+			Person person = (Person) wo;
+
+			if (personTable.get(person.getId()) != null) {
+				throw new InvalidParameterException();
+			}
+			personTable.put(person.getId(), person);
+		}
+
+		super.childAdded(wo);
+	}
+
+	@Override
+	public void addChild(IWorldObject wo, int index) {
+		super.addChild(wo, index);
+	}
 
 	public boolean addMutualRelationship(Person userA, Person userB) {
 
@@ -132,6 +147,13 @@ public class SocialGround extends ElasticGround {
 	}
 
 	public Person getPerson(String id) {
-		return personTable.get(id);
+		Person person = personTable.get(id);
+
+		if (person != null) {
+			Util.Assert(person.getParent() == this);
+		}
+
+		return person;
+
 	}
 }

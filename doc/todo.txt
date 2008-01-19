@@ -1,5 +1,10 @@
 
 Done:
+Load friends from Person object, store friends there
+
+Write search code for searching nodes
+
+Elliptical path for object animation paths
 
 Open up social network in new window, show person's profile pic in window header
 

@@ -53,8 +53,8 @@ public class Person extends ModelObject implements Interactable {
 
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				profileImage.setOffset(-profileImage.getWidth() / 2f,
-						-profileImage.getWidth() / 2f);
+				profileImage
+						.setOffset(-profileImage.getWidth() / 2f, -profileImage.getWidth() / 2f);
 				addChild(profileImage);
 				setBounds(parentToLocal(getFullBounds()));
 				// setBounds(profileImage.localToParent(profileImage.getBounds()));
@@ -71,8 +71,7 @@ public class Person extends ModelObject implements Interactable {
 
 		if (getWorldLayer() instanceof SocialGround) {
 			SocialGround ground = (SocialGround) getWorldLayer();
-			menu.addAction(new ExpandNetworkAction("Show friends", 2, ground,
-					this));
+			menu.addAction(new ExpandNetworkAction("Show friends", 2, ground, this));
 		}
 
 		if (!isPhotosEnabled()) {
@@ -138,8 +137,8 @@ public class Person extends ModelObject implements Interactable {
 		if (enabled) {
 			if (windowRef.get() == null || windowRef.get().isDestroyed()) {
 
-				ElasticWorld privateWorld = new PersonWorld(getName()
-						+ "'s World", getModel());
+				ElasticWorld privateWorld = new PersonWorld(getName() + "'s World", getModel());
+
 				Window window = new Window(this, privateWorld);
 
 				getWorld().zoomToObject(window);
@@ -167,24 +166,21 @@ public class Person extends ModelObject implements Interactable {
 		if (enabled) {
 			if (myPhotoCollage == null) {
 
-				IStreamingPhotoSource flickrPhotos = FlickrPhotoSource
-						.createUserSource(getModel().getId(), true);
+				IStreamingPhotoSource flickrPhotos = FlickrPhotoSource.createUserSource(getModel()
+						.getId(), true);
 				PhotoCollage collage = new PhotoCollage(flickrPhotos);
 				collage.setScale(0.5f);
 				collage.setTransparency(0f);
 				addChild(collage);
 
-				Point2D size = collage.localToParent(new Point2D.Double(collage
-						.getWidth(), collage.getHeight()));
+				Point2D size = collage.localToParent(new Point2D.Double(collage.getWidth(), collage
+						.getHeight()));
 
 				collage.setOffset(-size.getX() / 2d, -size.getY() / 2d);
-				collage
-						.animateToPosition(getBounds().getMaxX() + 5, collage
-								.getOffset().getY(),
-								ChameleonStyle.MEDIUM_ANIMATION_MS);
+				collage.animateToPosition(getBounds().getMaxX() + 5, collage.getOffset().getY(),
+						ChameleonStyle.MEDIUM_ANIMATION_MS);
 
-				addActivity(new Fader(collage,
-						ChameleonStyle.MEDIUM_ANIMATION_MS, 1f));
+				addActivity(new Fader(collage, ChameleonStyle.MEDIUM_ANIMATION_MS, 1f));
 
 				collageShadow = new RectangularEdge(this, collage);
 				addChild(collageShadow, 0);
@@ -230,8 +226,8 @@ class PersonWorld extends ElasticWorld {
 		Person person = new Person(user);
 		getGround().addPerson(person);
 
-		StandardAction expandNetwork = new ExpandNetworkAction(
-				"Expanding network", 2, (SocialGround) getGround(), person);
+		StandardAction expandNetwork = new ExpandNetworkAction("Expanding network", 2,
+				(SocialGround) getGround(), person);
 
 		expandNetwork.doAction();
 	}
