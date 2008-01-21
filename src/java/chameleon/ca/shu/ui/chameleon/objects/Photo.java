@@ -1,14 +1,15 @@
 package ca.shu.ui.chameleon.objects;
 
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 
 import javax.swing.SwingUtilities;
 
 import ca.neo.ui.models.tooltips.TooltipBuilder;
-import ca.neo.ui.models.tooltips.TooltipProperty;
 import ca.shu.ui.chameleon.adapters.IPhoto;
 import ca.shu.ui.chameleon.adapters.flickr.FileDownload;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
@@ -17,11 +18,12 @@ import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
+import ca.shu.ui.lib.world.Droppable;
 import ca.shu.ui.lib.world.EventListener;
-import ca.shu.ui.lib.world.IDroppable;
-import ca.shu.ui.lib.world.IWorldLayer;
-import ca.shu.ui.lib.world.IWorldObject;
 import ca.shu.ui.lib.world.Interactable;
+import ca.shu.ui.lib.world.Searchable;
+import ca.shu.ui.lib.world.WorldLayer;
+import ca.shu.ui.lib.world.WorldObject;
 import ca.shu.ui.lib.world.piccolo.objects.BoundsHandle;
 import ca.shu.ui.lib.world.piccolo.objects.Wrapper;
 import ca.shu.ui.lib.world.piccolo.primitives.Image;
@@ -35,7 +37,7 @@ import edu.umd.cs.piccolo.event.PInputEvent;
 /**
  * @author Shu Wu
  */
-public class Photo extends ModelObject implements Interactable, IDroppable {
+public class Photo extends ModelObject implements Interactable, Droppable, Searchable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -63,34 +65,23 @@ public class Photo extends ModelObject implements Interactable, IDroppable {
 
 	private Image photoImage;
 
-	private PhotoInfoFrame photoInfoFrame;
-
 	private final Wrapper photoWrapper;
 
 	private IPhoto proxy;
 
+	private Collection<SearchValuePair> searchableValues;
+
 	public Photo(IPhoto photoData) {
 		super(photoData);
 		this.proxy = photoData;
-
-		photoWrapper = new PhotoWrapper();
+		this.photoWrapper = new PhotoWrapper();
 		addChild(photoWrapper);
-		photoWrapper.addPropertyChangeListener(EventType.BOUNDS_CHANGED,
-				new EventListener() {
-
-					public void propertyChanged(EventType event) {
-						Photo.this.setBounds(photoWrapper.getBounds());
-					}
-
-				});
-
-		setName(getModel().getTitle());
-		// addInputEventListener(new PhotoResizeHandler(this));
-
-		// Sets the default size of photos to the cached photo size
-		currentSize = FlickrPhotoSource.DEFAULT_PHOTO_SIZE;
-
-		loadImage();
+		photoWrapper.addPropertyChangeListener(EventType.BOUNDS_CHANGED, new EventListener() {
+			public void propertyChanged(EventType event) {
+				Photo.this.setBounds(photoWrapper.getBounds());
+			}
+		});
+		init(photoData);
 	}
 
 	private boolean canChangeResolution(boolean increase) {
@@ -121,12 +112,19 @@ public class Photo extends ModelObject implements Interactable, IDroppable {
 		}
 	}
 
-	private boolean isPhotoFrameVisible() {
-		if (photoInfoFrame != null) {
-			return true;
-		} else {
-			return false;
-		}
+	private void init(IPhoto photo) {
+		setName(photo.getTitle());
+
+		LinkedList<SearchValuePair> sValues = new LinkedList<SearchValuePair>();
+		sValues.add(new SearchValuePair("Title", photo.getTitle()));
+		sValues.add(new SearchValuePair("Photo Id", photo.getId()));
+		sValues.add(new SearchValuePair("Author Name", photo.getAuthorName()));
+		sValues.add(new SearchValuePair("Description", photo.getDescription()));
+		this.searchableValues = new ArrayList<SearchValuePair>(sValues);
+		// Sets the default size of photos to the cached photo size
+		currentSize = FlickrPhotoSource.DEFAULT_PHOTO_SIZE;
+
+		loadImage();
 	}
 
 	private void loadImage() {
@@ -134,26 +132,6 @@ public class Photo extends ModelObject implements Interactable, IDroppable {
 			loadingImage = true;
 			Thread loadImageThread = new Thread(new ImageLoader());
 			loadImageThread.start();
-		}
-	}
-
-	private void setPhotoFrameVisible(boolean isVisible) {
-		if (isVisible) {
-			photoInfoFrame = new PhotoInfoFrame(proxy);
-
-			Point2D framePosition = this.getOffset();
-
-			photoInfoFrame
-					.setOffset(framePosition.getX(), framePosition.getY());
-
-			this.addChild(photoInfoFrame);
-			photoInfoFrame.animateToPositionScaleRotation(framePosition.getX()
-					+ this.getWidth() + 20, framePosition.getY(), 1, 0, 500);
-		} else {
-			if (photoInfoFrame != null) {
-				this.removeChild(photoInfoFrame);
-				photoInfoFrame = null;
-			}
 		}
 	}
 
@@ -174,27 +152,26 @@ public class Photo extends ModelObject implements Interactable, IDroppable {
 
 	@Override
 	protected void constructTooltips(TooltipBuilder builder) {
-		builder.addPart(new TooltipProperty("Title", getModel().getTitle()));
-		builder.addPart(new TooltipProperty("Description", getModel()
-				.getDescription()));
+		builder.addProperty("Title", getModel().getTitle());
+		builder.addProperty("Description", getModel().getDescription());
 	}
 
-	public boolean acceptTarget(IWorldObject target) {
-		if (target instanceof IWorldLayer) {
+	public boolean acceptTarget(WorldObject target) {
+		if (target instanceof WorldLayer) {
 			return true;
 		} else {
 			return false;
 		}
 	}
 
-	@Override
-	public void doubleClicked() {
-		if (!isPhotoFrameVisible()) {
-			setPhotoFrameVisible(true);
-		} else {
-			setPhotoFrameVisible(false);
-		}
-	}
+	// @Override
+	// public void doubleClicked() {
+	// if (!isPhotoFrameVisible()) {
+	// setPhotoFrameVisible(true);
+	// } else {
+	// setPhotoFrameVisible(false);
+	// }
+	// }
 
 	@Override
 	public IPhoto getModel() {
@@ -203,6 +180,10 @@ public class Photo extends ModelObject implements Interactable, IDroppable {
 
 	public IPhoto getProxy() {
 		return proxy;
+	}
+
+	public Collection<SearchValuePair> getSearchableValues() {
+		return searchableValues;
 	}
 
 	@Override
@@ -237,8 +218,7 @@ public class Photo extends ModelObject implements Interactable, IDroppable {
 
 	class ImageLoader implements Runnable {
 
-		public void loadImage() throws InterruptedException,
-				InvocationTargetException {
+		public void loadImage() throws InterruptedException, InvocationTargetException {
 			SwingUtilities.invokeAndWait(new Runnable() {
 				public void run() {
 					Text loadingText = new Text("Loading Image...");
@@ -257,16 +237,15 @@ public class Photo extends ModelObject implements Interactable, IDroppable {
 			/*
 			 * Tries to find image in cache first
 			 */
-			File cachedImage = new File(getImageCacheFolder(proxy.getType()),
-					proxy.getId() + "_Size" + currentSize + ".jpg");
+			File cachedImage = new File(getImageCacheFolder(proxy.getType()), proxy.getId()
+					+ "_Size" + currentSize + ".jpg");
 
 			if (!cachedImage.exists()) {
 				/*
 				 * Cache the image
 				 */
-				FileDownload.download(
-						proxy.getImageUrl(currentSize).toString(), cachedImage
-								.toString());
+				FileDownload.download(proxy.getImageUrl(currentSize).toString(), cachedImage
+						.toString());
 			}
 
 			Rectangle2D oldBounds = null;
@@ -293,9 +272,8 @@ public class Photo extends ModelObject implements Interactable, IDroppable {
 					photoWrapper.setPackage(photoImage);
 
 					if (photoBounds != null) {
-						photoImage.animateToBounds(photoBounds.getX(),
-								photoBounds.getY(), photoBounds.getWidth(),
-								photoBounds.getHeight(), 1000);
+						photoImage.animateToBounds(photoBounds.getX(), photoBounds.getY(),
+								photoBounds.getWidth(), photoBounds.getHeight(), 1000);
 					}
 
 					synchronized (Photo.this) {
@@ -353,18 +331,17 @@ class PhotoWrapper extends Wrapper implements EventListener {
 	}
 
 	private void resize() {
-		IWorldObject imageInner = getPackage();
+		WorldObject imageInner = getPackage();
 
-		setBounds(0, 0, (float) (imageInner.getWidth() + IMG_BORDER_PX * 2),
-				(float) (imageInner.getHeight() + IMG_BORDER_PX * 2));
+		setBounds(0, 0, (float) (imageInner.getWidth() + IMG_BORDER_PX * 2), (float) (imageInner
+				.getHeight() + IMG_BORDER_PX * 2));
 
 	}
 
 	@Override
-	protected void packageChanged(IWorldObject oldPackage) {
+	protected void packageChanged(WorldObject oldPackage) {
 		if (oldPackage != null) {
-			oldPackage.removePropertyChangeListener(EventType.BOUNDS_CHANGED,
-					this);
+			oldPackage.removePropertyChangeListener(EventType.BOUNDS_CHANGED, this);
 		}
 
 		getPackage().setOffset(IMG_BORDER_PX, IMG_BORDER_PX);

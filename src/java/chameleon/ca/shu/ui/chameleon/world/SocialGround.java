@@ -8,7 +8,7 @@ import java.util.Random;
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.lib.util.Util;
-import ca.shu.ui.lib.world.IWorldObject;
+import ca.shu.ui.lib.world.WorldObject;
 import ca.shu.ui.lib.world.activities.Fader;
 import ca.shu.ui.lib.world.elastic.ElasticGround;
 import ca.shu.ui.lib.world.piccolo.primitives.PXEdge;
@@ -47,7 +47,7 @@ public class SocialGround extends ElasticGround {
 	}
 
 	@Override
-	public void childRemoved(IWorldObject wo) {
+	public void childRemoved(WorldObject wo) {
 		if (wo instanceof Person) {
 			Person person = (Person) wo;
 
@@ -58,7 +58,7 @@ public class SocialGround extends ElasticGround {
 	}
 
 	@Override
-	public void childAdded(IWorldObject wo) {
+	public void childAdded(WorldObject wo) {
 		if (wo instanceof Person) {
 			Person person = (Person) wo;
 
@@ -72,7 +72,7 @@ public class SocialGround extends ElasticGround {
 	}
 
 	@Override
-	public void addChild(IWorldObject wo, int index) {
+	public void addChild(WorldObject wo, int index) {
 		super.addChild(wo, index);
 	}
 

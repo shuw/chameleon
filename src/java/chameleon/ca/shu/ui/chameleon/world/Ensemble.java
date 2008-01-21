@@ -9,9 +9,9 @@ import javax.swing.JPopupMenu;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
-import ca.shu.ui.lib.world.IWorld;
-import ca.shu.ui.lib.world.IWorldLayer;
-import ca.shu.ui.lib.world.IWorldObject;
+import ca.shu.ui.lib.world.World;
+import ca.shu.ui.lib.world.WorldLayer;
+import ca.shu.ui.lib.world.WorldObject;
 import ca.shu.ui.lib.world.Interactable;
 import ca.shu.ui.lib.world.elastic.ElasticObject;
 import ca.shu.ui.lib.world.piccolo.objects.Window;
@@ -26,29 +26,29 @@ import ca.shu.ui.lib.world.piccolo.primitives.Image;
 public class Ensemble extends ElasticObject implements Interactable {
 	private WeakReference<Window> windowRef = new WeakReference<Window>(null);
 
-	Collection<WeakReference<IWorldObject>> objectsRef;
+	Collection<WeakReference<WorldObject>> objectsRef;
 
-	public Ensemble(Collection<IWorldObject> objects) {
+	public Ensemble(Collection<WorldObject> objects) {
 		super();
 		this.addChild(new Image("images/chameleonIcons/Group.gif"));
 		setBounds(parentToLocal(getFullBounds()));
 
-		this.objectsRef = new ArrayList<WeakReference<IWorldObject>>(objects.size());
+		this.objectsRef = new ArrayList<WeakReference<WorldObject>>(objects.size());
 
-		for (IWorldObject wo : objects) {
-			objectsRef.add(new WeakReference<IWorldObject>(wo));
+		for (WorldObject wo : objects) {
+			objectsRef.add(new WeakReference<WorldObject>(wo));
 		}
 
 	}
 
-	private void moveObjectsToWorld(IWorld world) {
-		IWorldLayer ground = world.getGround();
+	private void moveObjectsToWorld(World world) {
+		WorldLayer ground = world.getGround();
 
 		double lowestX = Double.MAX_VALUE;
 		double lowestY = Double.MAX_VALUE;
-		for (WeakReference<IWorldObject> woRef : objectsRef) {
+		for (WeakReference<WorldObject> woRef : objectsRef) {
 			if (woRef.get() != null && !woRef.get().isDestroyed()) {
-				IWorldObject wo = woRef.get();
+				WorldObject wo = woRef.get();
 
 				double x = wo.getOffset().getX();
 				double y = wo.getOffset().getY();
@@ -62,9 +62,9 @@ public class Ensemble extends ElasticObject implements Interactable {
 			}
 		}
 		// Zero object positions
-		for (WeakReference<IWorldObject> woRef : objectsRef) {
+		for (WeakReference<WorldObject> woRef : objectsRef) {
 			if (woRef.get() != null && !woRef.get().isDestroyed()) {
-				IWorldObject wo = woRef.get();
+				WorldObject wo = woRef.get();
 
 				wo.removeFromWorld();
 				wo.translate(-lowestX, -lowestY);

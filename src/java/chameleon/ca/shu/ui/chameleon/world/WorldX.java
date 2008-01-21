@@ -5,7 +5,7 @@ import java.util.Collection;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
-import ca.shu.ui.lib.world.IWorldObject;
+import ca.shu.ui.lib.world.WorldObject;
 import ca.shu.ui.lib.world.elastic.ElasticWorld;
 
 /**
@@ -18,17 +18,17 @@ public class WorldX extends ElasticWorld {
 	}
 
 	@Override
-	protected void constructSelectionMenu(Collection<IWorldObject> selection,
+	protected void constructSelectionMenu(Collection<WorldObject> selection,
 			PopupMenuBuilder menu) {
 		super.constructSelectionMenu(selection, menu);
 		menu.addAction(new GroupObjectsAction("New Window", selection));
 	}
 
 	class GroupObjectsAction extends StandardAction {
-		private Collection<IWorldObject> objects;
+		private Collection<WorldObject> objects;
 
 		public GroupObjectsAction(String description,
-				Collection<IWorldObject> objects) {
+				Collection<WorldObject> objects) {
 			super(description);
 			this.objects = objects;
 		}

@@ -15,7 +15,7 @@ import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.UserMessages;
 import ca.shu.ui.lib.util.Util;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
-import ca.shu.ui.lib.world.IWorldObject;
+import ca.shu.ui.lib.world.WorldObject;
 import ca.shu.ui.lib.world.activities.Fader;
 import ca.shu.ui.lib.world.piccolo.WorldObjectImpl;
 import ca.shu.ui.lib.world.piccolo.objects.Border;
@@ -50,10 +50,10 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 		this(photoSource, 1200, 1200);
 	}
 
-	public PhotoCollage(IStreamingPhotoSource photoSource, double collageWidth,
-			double collageHeight) {
+	public PhotoCollage(IStreamingPhotoSource photoSource, double collageWidth, double collageHeight) {
 		super(photoSource);
 
+		setSelectable(true);
 		setName(photoSource.getName());
 
 		setPaint(Style.COLOR_BACKGROUND);
@@ -128,12 +128,10 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 		if (isAutoScrollEnabled()) {
 
 			if (canChangeScrollSpeed(true)) {
-				menu.addAction(new ChangeScrollSpeedAction("+ Scroll Speed",
-						true));
+				menu.addAction(new ChangeScrollSpeedAction("+ Scroll Speed", true));
 			}
 			if (canChangeScrollSpeed(false)) {
-				menu.addAction(new ChangeScrollSpeedAction("- Scroll Speed",
-						false));
+				menu.addAction(new ChangeScrollSpeedAction("- Scroll Speed", false));
 			}
 
 			menu.addAction(new SetAutoScrollAction("Stop scrolling", false));
@@ -177,8 +175,7 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 	}
 
 	public void setCollageWidth(double width) {
-		Util.Assert(width >= MINIMUM_WIDTH && width <= MAXIMUM_WIDTH,
-				"Incorrect size");
+		Util.Assert(width >= MINIMUM_WIDTH && width <= MAXIMUM_WIDTH, "Incorrect size");
 
 		collage.setWidth(width);
 
@@ -298,7 +295,7 @@ class CollageInner extends WorldObjectImpl {
 
 	private Collection<Photo> getChildrenPhotos() {
 		LinkedList<Photo> photos = new LinkedList<Photo>();
-		for (IWorldObject wo : getChildren()) {
+		for (WorldObject wo : getChildren()) {
 			if (!wo.isSelected()) {
 				if (wo instanceof Photo) {
 					photos.add((Photo) wo);
@@ -313,14 +310,13 @@ class CollageInner extends WorldObjectImpl {
 			if (!photo.isSelected()) {
 				double moveToY = photo.getOffset().getY() - moveBy;
 
-				photo.animateToPositionScaleRotation(photo.getOffset().getX(),
-						moveToY, 1, 0, 1000);
+				photo.animateToPositionScaleRotation(photo.getOffset().getX(), moveToY, 1, 0, 1000);
 
 				// its moved off the screen
 				if (moveToY < 0) {
 					getPiccolo().addActivity(new Fader(photo, 1000, 0f));
-					photo.animateToPosition(photo.getOffset().getX(), photo
-							.getOffset().getY() - 500, 1000);
+					photo.animateToPosition(photo.getOffset().getX(),
+							photo.getOffset().getY() - 500, 1000);
 					getPiccolo().addActivity(new RemovePhoto(1000, photo));
 				}
 			}
@@ -330,8 +326,7 @@ class CollageInner extends WorldObjectImpl {
 	/*
 	 * Inserts photos and lays them out in the correct position
 	 */
-	private void layoutPhotos(Collection<Photo> photosToInsert,
-			boolean resetLayout) {
+	private void layoutPhotos(Collection<Photo> photosToInsert, boolean resetLayout) {
 
 		double rowHeight = 0; // max Y boundary
 		double minYBound = Double.MAX_VALUE; // min Y boundary
@@ -411,8 +406,7 @@ class CollageInner extends WorldObjectImpl {
 
 				for (Photo photo : collagePhotos) {
 					if ((photo.getOffset().getY() - moveByOrg) < 0) {
-						double newMoveBy = photo.getOffset().getY()
-								+ photo.getHeight();
+						double newMoveBy = photo.getOffset().getY() + photo.getHeight();
 
 						if (newMoveBy > moveBy) {
 							moveBy = newMoveBy;
@@ -502,8 +496,7 @@ class CollageInner extends WorldObjectImpl {
 						if (photoQueue.size() > 0) {
 							synchronized (animationLock) {
 
-								addAndScrollPhotos((Stack<Photo>) (photoQueue
-										.clone()));
+								addAndScrollPhotos((Stack<Photo>) (photoQueue.clone()));
 								photoQueue.clear();
 
 								Thread.sleep(1200);
@@ -521,9 +514,9 @@ class CollageInner extends WorldObjectImpl {
 	}
 
 	class RemovePhoto extends PActivity {
-		IWorldObject photoToRemove;
+		WorldObject photoToRemove;
 
-		public RemovePhoto(long aDuration, IWorldObject photoToRemove) {
+		public RemovePhoto(long aDuration, WorldObject photoToRemove) {
 			super(aDuration);
 			this.photoToRemove = photoToRemove;
 		}

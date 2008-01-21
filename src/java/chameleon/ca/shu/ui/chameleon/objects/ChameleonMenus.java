@@ -4,7 +4,7 @@ import ca.shu.ui.chameleon.adapters.IChameleonObj;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.util.menus.AbstractMenuBuilder;
-import ca.shu.ui.lib.world.IWorldObject;
+import ca.shu.ui.lib.world.WorldObject;
 import edu.stanford.ejalbert.BrowserLauncher;
 import edu.stanford.ejalbert.exception.BrowserLaunchingExecutionException;
 import edu.stanford.ejalbert.exception.BrowserLaunchingInitializingException;
@@ -15,21 +15,21 @@ public class ChameleonMenus {
 
 	private static final double SCALE_FACTOR = 1.5;
 
-	protected static void constructMenu(IWorldObject worldObj,
+	protected static void constructMenu(WorldObject worldObj,
 			AbstractMenuBuilder menu) {
 		constructMenu(worldObj, null, menu);
 	}
 
-	protected static void constructMenu(IWorldObject worldObj,
+	protected static void constructMenu(WorldObject worldObj,
 			IChameleonObj chamObj, AbstractMenuBuilder menu) {
 		ChameleonMenus chameleonMenu = new ChameleonMenus(worldObj, chamObj);
 		chameleonMenu.constructMenu(menu);
 	}
 
 	private IChameleonObj chameleonObj;
-	private IWorldObject worldObj;
+	private WorldObject worldObj;
 
-	public ChameleonMenus(IWorldObject worldObj, IChameleonObj chameleonObj) {
+	public ChameleonMenus(WorldObject worldObj, IChameleonObj chameleonObj) {
 		super();
 		this.worldObj = worldObj;
 		this.chameleonObj = chameleonObj;

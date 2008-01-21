@@ -2,6 +2,9 @@ package ca.shu.ui.chameleon.objects;
 
 import java.awt.geom.Point2D;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 
 import javax.swing.SwingUtilities;
 
@@ -17,6 +20,7 @@ import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
 import ca.shu.ui.lib.world.Interactable;
+import ca.shu.ui.lib.world.Searchable;
 import ca.shu.ui.lib.world.activities.Fader;
 import ca.shu.ui.lib.world.elastic.ElasticWorld;
 import ca.shu.ui.lib.world.piccolo.objects.RectangularEdge;
@@ -24,7 +28,7 @@ import ca.shu.ui.lib.world.piccolo.objects.Window;
 import ca.shu.ui.lib.world.piccolo.objects.Window.WindowState;
 import ca.shu.ui.lib.world.piccolo.primitives.Image;
 
-public class Person extends ModelObject implements Interactable {
+public class Person extends ModelObject implements Interactable, Searchable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -34,16 +38,14 @@ public class Person extends ModelObject implements Interactable {
 
 	private Image profileImage;
 
+	private Collection<SearchValuePair> searchableValues;
+
+	private WeakReference<Window> windowRef = new WeakReference<Window>(null);
+
 	public Person(IUser user) {
 		super(user);
 
-		(new Thread(new Runnable() {
-			public void run() {
-				loadProfileImage();
-			}
-		})).start();
-
-		setName(user.getRealName());
+		init(user);
 	}
 
 	private void loadProfileImage() {
@@ -88,46 +90,13 @@ public class Person extends ModelObject implements Interactable {
 
 	}
 
-	class SetWindowEnabled extends StandardAction {
-		private boolean enabled;
-
-		public SetWindowEnabled(String description, boolean enabled) {
-			super(description);
-			this.enabled = enabled;
-		}
-
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		protected void action() throws ActionException {
-			setWindowEnabled(enabled);
-		}
-
-	}
-
-	public String getId() {
-		return getModel().getId();
-	}
-
-	@Override
-	public IUser getModel() {
-		return (IUser) super.getModel();
-	}
-
-	@Override
-	public String getTypeName() {
-		return "Flickr User";
-	}
-
-	public boolean isPhotosEnabled() {
-		if (myPhotoCollage != null) {
+	protected boolean isWindowEnabled() {
+		if (windowRef.get() != null && !windowRef.get().isDestroyed()) {
 			return true;
 		} else {
 			return false;
 		}
 	}
-
-	private WeakReference<Window> windowRef = new WeakReference<Window>(null);
 
 	/**
 	 * @return Viewer Window
@@ -154,8 +123,42 @@ public class Person extends ModelObject implements Interactable {
 		}
 	}
 
-	protected boolean isWindowEnabled() {
-		if (windowRef.get() != null && !windowRef.get().isDestroyed()) {
+	public String getId() {
+		return getModel().getId();
+	}
+
+	@Override
+	public IUser getModel() {
+		return (IUser) super.getModel();
+	}
+
+	public Collection<SearchValuePair> getSearchableValues() {
+		return searchableValues;
+	}
+
+	@Override
+	public String getTypeName() {
+		return "Flickr User";
+	}
+
+	public void init(IUser user) {
+		(new Thread(new Runnable() {
+			public void run() {
+				loadProfileImage();
+			}
+		})).start();
+		setName(user.getRealName());
+
+		LinkedList<SearchValuePair> sValues = new LinkedList<SearchValuePair>();
+		sValues.add(new SearchValuePair("Real Name", user.getRealName()));
+		sValues.add(new SearchValuePair("User Name", user.getUserName()));
+		sValues.add(new SearchValuePair("User Id", user.getId()));
+
+		this.searchableValues = new ArrayList<SearchValuePair>(sValues);
+	}
+
+	public boolean isPhotosEnabled() {
+		if (myPhotoCollage != null) {
 			return true;
 		} else {
 			return false;
@@ -184,6 +187,8 @@ public class Person extends ModelObject implements Interactable {
 
 				collageShadow = new RectangularEdge(this, collage);
 				addChild(collageShadow, 0);
+
+				myPhotoCollage = collage;
 			}
 		} else {
 			if (myPhotoCollage != null) {
@@ -211,6 +216,23 @@ public class Person extends ModelObject implements Interactable {
 
 	}
 
+	class SetWindowEnabled extends StandardAction {
+		private static final long serialVersionUID = 1L;
+
+		private boolean enabled;
+
+		public SetWindowEnabled(String description, boolean enabled) {
+			super(description);
+			this.enabled = enabled;
+		}
+
+		@Override
+		protected void action() throws ActionException {
+			setWindowEnabled(enabled);
+		}
+
+	}
+
 }
 
 /**
@@ -233,14 +255,14 @@ class PersonWorld extends ElasticWorld {
 	}
 
 	@Override
-	public SocialGround getGround() {
-		return (SocialGround) super.getGround();
-	}
-
-	@Override
 	protected void constructMenu(PopupMenuBuilder menu) {
 		super.constructMenu(menu);
 
+	}
+
+	@Override
+	public SocialGround getGround() {
+		return (SocialGround) super.getGround();
 	}
 
 }
