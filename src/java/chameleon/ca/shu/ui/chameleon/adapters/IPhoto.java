@@ -18,7 +18,13 @@ public interface IPhoto extends IChameleonObj {
 
 	public URL getImageUrl(int label);
 
-	public URL getProfilePicUrl();
+	public String getOwnerId();
+
+	public String getOwnerLocation();
+
+	public String getOwnerName();
+
+	public URL getOwnerProfilePicUrl();
 
 	public String getTitle();
 

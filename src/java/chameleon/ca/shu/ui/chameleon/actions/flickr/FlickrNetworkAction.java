@@ -24,8 +24,7 @@ public abstract class FlickrNetworkAction extends NetworkAction {
 	SocialGround myChameleon;
 	private Flickr flickrAPI;
 
-	public FlickrNetworkAction(String actionName, int numOfDegrees,
-			SocialGround chameleon) {
+	public FlickrNetworkAction(String actionName, int numOfDegrees, SocialGround chameleon) {
 		super(actionName, numOfDegrees);
 		flickrAPI = FlickrAPI.create();
 		this.myChameleon = chameleon;
@@ -36,14 +35,13 @@ public abstract class FlickrNetworkAction extends NetworkAction {
 		return new FlickrNetworkLoader();
 	}
 
-	private IUser getUser(String userId, boolean ensure) throws IOException,
-			SAXException, FlickrException {
+	private IUser getUser(String userId, boolean ensure) throws IOException, SAXException,
+			FlickrException {
 		Person person = myChameleon.getPerson(userId);
 
 		if (person == null) {
 			if (ensure) {
-				FlickrUser user = new FlickrUser(flickrAPI.getPeopleInterface()
-						.getInfo(userId));
+				FlickrUser user = new FlickrUser(flickrAPI.getPeopleInterface().getInfo(userId));
 				return user;
 			} else {
 				return null;
@@ -54,21 +52,16 @@ public abstract class FlickrNetworkAction extends NetworkAction {
 
 	}
 
-	public void acceptNewConnection(String userAId, String userBId,
-			int degreesFromRoot) {
+	public void acceptNewConnection(String userAId, String userBId, int degreesFromRoot,
+			boolean create) {
 
 		try {
-			boolean ensure = true;
-			if (degreesFromRoot > 1) {
-				ensure = false;
-			}
 
-			IUser userA = getUser(userAId, ensure);
-			IUser userB = getUser(userBId, ensure);
+			IUser userA = getUser(userAId, create);
+			IUser userB = getUser(userBId, create);
 
 			if (userA != null && userB != null) {
-				SwingUtilities.invokeAndWait(new AddRelationshipRunner(userA,
-						userB, myChameleon));
+				SwingUtilities.invokeAndWait(new AddRelationshipRunner(userA, userB, myChameleon));
 			}
 		} catch (FlickrException e) {
 			e.printStackTrace();
@@ -83,8 +76,7 @@ class AddRelationshipRunner implements Runnable {
 	private IUser userA, userB;
 	private SocialGround myChameleon;
 
-	public AddRelationshipRunner(IUser userA, IUser userB,
-			SocialGround chameleon) {
+	public AddRelationshipRunner(IUser userA, IUser userB, SocialGround chameleon) {
 		super();
 		this.myChameleon = chameleon;
 		this.userA = userA;

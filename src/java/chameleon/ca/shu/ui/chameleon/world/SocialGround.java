@@ -1,7 +1,6 @@
 package ca.shu.ui.chameleon.world;
 
 import java.security.InvalidParameterException;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Random;
 
@@ -30,8 +29,6 @@ public class SocialGround extends ElasticGround {
 
 	private Hashtable<String, Person> personTable = new Hashtable<String, Person>();
 
-	private Hashtable<Person, HashSet<Person>> relationshipsMap = new Hashtable<Person, HashSet<Person>>();
-
 	public void addPerson(Person person) {
 		addPerson(person, true);
 	}
@@ -42,7 +39,7 @@ public class SocialGround extends ElasticGround {
 			person.setOffset(0, 0);
 			addObject(person, true);
 		} else {
-			addChild(person);
+			addChild(person, 0);
 		}
 	}
 
@@ -80,32 +77,21 @@ public class SocialGround extends ElasticGround {
 
 		boolean userBAlreadyFriendOfA = false;
 		boolean userAAlreadyFriendOfB = false;
-		HashSet<Person> friendsOfUserA = relationshipsMap.get(userA);
-		if (friendsOfUserA == null) {
-			friendsOfUserA = new HashSet<Person>();
-			relationshipsMap.put(userA, friendsOfUserA);
-		}
-		if (friendsOfUserA.contains(userB)) {
+
+		if (userA.isFriend(userB)) {
 			userBAlreadyFriendOfA = true;
 		} else {
-			friendsOfUserA.add(userB);
+			userA.addFriend(userB);
 		}
 
-		HashSet<Person> friendsOfUserB = relationshipsMap.get(userB);
-		if (friendsOfUserB == null) {
-			friendsOfUserB = new HashSet<Person>();
-			relationshipsMap.put(userB, friendsOfUserB);
-		}
-
-		if (friendsOfUserB.contains(userA)) {
+		if (userB.isFriend(userA)) {
 			userAAlreadyFriendOfB = true;
 		} else {
-			friendsOfUserB.add(userA);
+			userB.addFriend(userA);
 		}
 
-		Util
-				.Assert(userAAlreadyFriendOfB == userBAlreadyFriendOfA,
-						"Relationship table inconsistent, only mutual relationships supported");
+		Util.Assert(userAAlreadyFriendOfB == userBAlreadyFriendOfA,
+				"Relationship table inconsistent, only mutual relationships supported");
 
 		if (!userAAlreadyFriendOfB) {
 			/*
@@ -131,10 +117,8 @@ public class SocialGround extends ElasticGround {
 			// it was related to
 
 			Random rand = new Random();
-			double xPos = personA.getOffset().getX()
-					+ (50 * (rand.nextDouble() - 0.5));
-			double yPos = personA.getOffset().getY()
-					+ (50 * (rand.nextDouble() - 0.5));
+			double xPos = personA.getOffset().getX() + (50 * (rand.nextDouble() - 0.5));
+			double yPos = personA.getOffset().getY() + (50 * (rand.nextDouble() - 0.5));
 
 			personB.setOffset(xPos, yPos);
 			personB.setTransparency(0f);

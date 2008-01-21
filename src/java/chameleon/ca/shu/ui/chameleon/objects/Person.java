@@ -4,21 +4,22 @@ import java.awt.geom.Point2D;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 
-import javax.swing.SwingUtilities;
-
+import ca.neo.ui.models.tooltips.TooltipBuilder;
 import ca.shu.ui.chameleon.actions.flickr.ExpandNetworkAction;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
+import ca.shu.ui.chameleon.adapters.flickr.PersonIcon;
 import ca.shu.ui.chameleon.world.ChameleonStyle;
 import ca.shu.ui.chameleon.world.SocialGround;
-import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
+import ca.shu.ui.lib.world.EventListener;
 import ca.shu.ui.lib.world.Interactable;
 import ca.shu.ui.lib.world.Searchable;
 import ca.shu.ui.lib.world.activities.Fader;
@@ -26,7 +27,6 @@ import ca.shu.ui.lib.world.elastic.ElasticWorld;
 import ca.shu.ui.lib.world.piccolo.objects.RectangularEdge;
 import ca.shu.ui.lib.world.piccolo.objects.Window;
 import ca.shu.ui.lib.world.piccolo.objects.Window.WindowState;
-import ca.shu.ui.lib.world.piccolo.primitives.Image;
 
 public class Person extends ModelObject implements Interactable, Searchable {
 
@@ -36,34 +36,43 @@ public class Person extends ModelObject implements Interactable, Searchable {
 
 	private PhotoCollage myPhotoCollage = null;
 
-	private Image profileImage;
-
 	private Collection<SearchValuePair> searchableValues;
 
 	private WeakReference<Window> windowRef = new WeakReference<Window>(null);
 
+	private HashSet<Person> friends;
+
+	public void addFriend(Person person) {
+		if (!friends.contains(person)) {
+			friends.add(person);
+		}
+	}
+
+	public boolean isFriend(Person person) {
+		return friends.contains(person);
+	}
+
 	public Person(IUser user) {
 		super(user);
-
+		friends = new HashSet<Person>();
 		init(user);
 	}
 
-	private void loadProfileImage() {
+	@Override
+	protected void constructTooltips(TooltipBuilder builder) {
+		super.constructTooltips(builder);
 
-		profileImage = new Image(getModel().getProfilePictureURL());
-		profileImage.setPickable(false);
+		for (SearchValuePair searchValuePair : searchableValues) {
+			builder.addProperty(searchValuePair.getName(), searchValuePair.getValue());
+		}
 
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				profileImage
-						.setOffset(-profileImage.getWidth() / 2f, -profileImage.getWidth() / 2f);
-				addChild(profileImage);
-				setBounds(parentToLocal(getFullBounds()));
-				// setBounds(profileImage.localToParent(profileImage.getBounds()));
-				profileImage.setPaint(Style.COLOR_DISABLED);
-			}
-		});
-
+		String onlineStatus;
+		if (getModel().getOnline() != null) {
+			onlineStatus = getModel().getOnline().toString();
+		} else {
+			onlineStatus = "unknown";
+		}
+		builder.addProperty("Online status", onlineStatus);
 	}
 
 	@Override
@@ -79,7 +88,7 @@ public class Person extends ModelObject implements Interactable, Searchable {
 		if (!isPhotosEnabled()) {
 			menu.addAction(new SetPhotosEnabledAction("Show photos", true));
 		} else {
-			menu.addAction(new SetPhotosEnabledAction("Hide photos", true));
+			menu.addAction(new SetPhotosEnabledAction("Hide photos", false));
 		}
 
 		if (!isWindowEnabled()) {
@@ -141,24 +150,31 @@ public class Person extends ModelObject implements Interactable, Searchable {
 		return "Flickr User";
 	}
 
+	private PersonIcon myIcon;
+
 	public void init(IUser user) {
-		(new Thread(new Runnable() {
-			public void run() {
-				loadProfileImage();
+		myIcon = new PersonIcon(user.getProfilePictureURL());
+		addChild(myIcon);
+		myIcon.addPropertyChangeListener(EventType.BOUNDS_CHANGED, new EventListener() {
+			public void propertyChanged(EventType event) {
+				setBounds(parentToLocal(getFullBounds()));
 			}
-		})).start();
+		});
+
 		setName(user.getRealName());
 
 		LinkedList<SearchValuePair> sValues = new LinkedList<SearchValuePair>();
 		sValues.add(new SearchValuePair("Real Name", user.getRealName()));
 		sValues.add(new SearchValuePair("User Name", user.getUserName()));
 		sValues.add(new SearchValuePair("User Id", user.getId()));
+		sValues.add(new SearchValuePair("Location", user.getLocation()));
+		sValues.add(new SearchValuePair("Away Message", user.getAwayMessage()));
 
 		this.searchableValues = new ArrayList<SearchValuePair>(sValues);
 	}
 
 	public boolean isPhotosEnabled() {
-		if (myPhotoCollage != null) {
+		if (myPhotoCollage != null && !myPhotoCollage.isDestroyed()) {
 			return true;
 		} else {
 			return false;
@@ -167,11 +183,12 @@ public class Person extends ModelObject implements Interactable, Searchable {
 
 	public void setPhotosEnabled(boolean enabled) {
 		if (enabled) {
-			if (myPhotoCollage == null) {
+			if (!isPhotosEnabled()) {
 
 				IStreamingPhotoSource flickrPhotos = FlickrPhotoSource.createUserSource(getModel()
 						.getId(), true);
 				PhotoCollage collage = new PhotoCollage(flickrPhotos);
+				myPhotoCollage = collage;
 				collage.setScale(0.5f);
 				collage.setTransparency(0f);
 				addChild(collage);
@@ -187,8 +204,8 @@ public class Person extends ModelObject implements Interactable, Searchable {
 
 				collageShadow = new RectangularEdge(this, collage);
 				addChild(collageShadow, 0);
+				setAnchored(true);
 
-				myPhotoCollage = collage;
 			}
 		} else {
 			if (myPhotoCollage != null) {
@@ -205,7 +222,7 @@ public class Person extends ModelObject implements Interactable, Searchable {
 		private boolean enabled;
 
 		public SetPhotosEnabledAction(String description, boolean enabled) {
-			super("Open photos");
+			super(description);
 			this.enabled = enabled;
 		}
 

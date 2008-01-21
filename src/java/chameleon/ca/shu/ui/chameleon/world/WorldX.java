@@ -1,5 +1,7 @@
 package ca.shu.ui.chameleon.world;
 
+import java.awt.geom.Rectangle2D;
+import java.security.InvalidParameterException;
 import java.util.Collection;
 
 import ca.shu.ui.lib.actions.ActionException;
@@ -18,17 +20,15 @@ public class WorldX extends ElasticWorld {
 	}
 
 	@Override
-	protected void constructSelectionMenu(Collection<WorldObject> selection,
-			PopupMenuBuilder menu) {
+	protected void constructSelectionMenu(Collection<WorldObject> selection, PopupMenuBuilder menu) {
 		super.constructSelectionMenu(selection, menu);
-		menu.addAction(new GroupObjectsAction("New Window", selection));
+		menu.addAction(new GroupObjectsAction("Move to new window", selection));
 	}
 
 	class GroupObjectsAction extends StandardAction {
 		private Collection<WorldObject> objects;
 
-		public GroupObjectsAction(String description,
-				Collection<WorldObject> objects) {
+		public GroupObjectsAction(String description, Collection<WorldObject> objects) {
 			super(description);
 			this.objects = objects;
 		}
@@ -40,10 +40,27 @@ public class WorldX extends ElasticWorld {
 
 		@Override
 		protected void action() throws ActionException {
-			Ensemble group = new Ensemble(objects);
+			if (objects.size() > 0) {
+				Ensemble ensemble = new Ensemble(objects);
 
-			getGround().addChild(group);
-			group.setEnsembleVisible(true);
+				Rectangle2D fullBoundsOfObjects = null;
+				for (WorldObject wo : objects) {
+					if (fullBoundsOfObjects == null) {
+						fullBoundsOfObjects = wo.getFullBounds();
+					} else {
+						Rectangle2D.union(fullBoundsOfObjects, wo.getFullBounds(),
+								fullBoundsOfObjects);
+					}
+
+				}
+				ensemble.setOffset(fullBoundsOfObjects.getCenterX(), fullBoundsOfObjects
+						.getCenterY());
+
+				getGround().addChild(ensemble);
+				ensemble.setEnsembleVisible(true);
+			} else {
+				throw new InvalidParameterException();
+			}
 		}
 
 	}

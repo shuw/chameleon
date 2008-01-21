@@ -9,10 +9,12 @@ import java.util.LinkedList;
 
 import javax.swing.SwingUtilities;
 
+import ca.neo.ui.models.tooltips.ITooltipPart;
 import ca.neo.ui.models.tooltips.TooltipBuilder;
 import ca.shu.ui.chameleon.adapters.IPhoto;
 import ca.shu.ui.chameleon.adapters.flickr.FileDownload;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
+import ca.shu.ui.chameleon.adapters.flickr.PersonIcon;
 import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
@@ -24,6 +26,7 @@ import ca.shu.ui.lib.world.Interactable;
 import ca.shu.ui.lib.world.Searchable;
 import ca.shu.ui.lib.world.WorldLayer;
 import ca.shu.ui.lib.world.WorldObject;
+import ca.shu.ui.lib.world.piccolo.WorldObjectImpl;
 import ca.shu.ui.lib.world.piccolo.objects.BoundsHandle;
 import ca.shu.ui.lib.world.piccolo.objects.Wrapper;
 import ca.shu.ui.lib.world.piccolo.primitives.Image;
@@ -152,8 +155,10 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 
 	@Override
 	protected void constructTooltips(TooltipBuilder builder) {
-		builder.addProperty("Title", getModel().getTitle());
-		builder.addProperty("Description", getModel().getDescription());
+		super.constructTooltips(builder);
+
+		builder.addPart(new PhotoInfoBar(getModel()));
+
 	}
 
 	public boolean acceptTarget(WorldObject target) {
@@ -321,6 +326,70 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 		}
 
 	}
+}
+
+/**
+ * Infor bar which shows the author, name , date url
+ * 
+ * @author Shu Wu
+ */
+class PhotoInfoBar implements ITooltipPart {
+
+	private double offsetY;
+
+	private IPhoto photo;
+
+	public PhotoInfoBar(IPhoto photo) {
+		super();
+		this.photo = photo;
+	}
+
+	private void addText(double offsetX, Text text) {
+		if (tooltipWidth - offsetX > 20) {
+			text.setConstrainWidthToTextWidth(false);
+			text.setWidth(tooltipWidth - offsetX);
+			text.recomputeLayout();
+		}
+
+		text.setOffset(offsetX, offsetY);
+		tooltipObj.addChild(text);
+		offsetY += text.getHeight();
+
+	}
+
+	private double tooltipWidth;
+	private WorldObject tooltipObj;
+
+	public WorldObject toWorldObject(double width) {
+		this.tooltipObj = new WorldObjectImpl();
+		this.tooltipWidth = width;
+
+		PersonIcon personIcon = new PersonIcon(photo.getOwnerProfilePicUrl());
+		tooltipObj.addChild(personIcon);
+
+		double offsetX = 55;
+		offsetY = 0;
+		Text name = new Text("By " + photo.getOwnerName());
+		Text location = new Text("From " + photo.getOwnerLocation());
+		Text Date = new Text("Taken on " + photo.getDateTaken());
+		// Text Url = new Text("Url: " + photo.getUrl().toString());
+
+		name.setFont(Style.FONT_BOLD);
+
+		addText(offsetX, name);
+		addText(offsetX, location);
+		addText(offsetX, Date);
+		// addText(offsetX, Url);
+
+		Text description = new Text(photo.getDescription());
+
+		addText(0, description);
+		description.translate(0, 5);
+
+		tooltipObj.setBounds(tooltipObj.parentToLocal(tooltipObj.getFullBounds()));
+		return tooltipObj;
+	}
+
 }
 
 class PhotoWrapper extends Wrapper implements EventListener {

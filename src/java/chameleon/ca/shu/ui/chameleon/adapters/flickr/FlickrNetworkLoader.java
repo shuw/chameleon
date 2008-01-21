@@ -11,6 +11,7 @@ import org.xml.sax.SAXException;
 import ca.shu.ui.chameleon.adapters.IAsyncNetworkLoader;
 import ca.shu.ui.chameleon.adapters.INetworkListener;
 import ca.shu.ui.chameleon.objects.Person;
+import ca.shu.ui.lib.objects.activities.TrackedStatusMsg;
 
 import com.aetrion.flickr.Flickr;
 import com.aetrion.flickr.FlickrException;
@@ -18,7 +19,15 @@ import com.aetrion.flickr.contacts.Contact;
 
 public class FlickrNetworkLoader implements IAsyncNetworkLoader {
 
-	static final int MAX_FRIENDS_OPTIONAL_LIMIT = 0; // Friends to retrieve
+	/**
+	 * Friends to load in first degree network
+	 */
+	private static final int MAX_FRIENDS_PER_PERSON_TO_LOAD_1 = 50;
+
+	/**
+	 * Friends to load in 2nd degree network
+	 */
+	private static final int MAX_FRIENDS_PER_PERSON_TO_LOAD_2 = 0;
 
 	private Flickr flickrAPI;
 
@@ -37,9 +46,8 @@ public class FlickrNetworkLoader implements IAsyncNetworkLoader {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
-	private synchronized void loadRecursive(String contactId, int depth,
-			int maxDepth, INetworkListener networkListener) throws IOException,
-			SAXException, FlickrException {
+	private synchronized void loadRecursive(String contactId, int depth, int maxDepth,
+			INetworkListener networkListener) throws IOException, SAXException, FlickrException {
 
 		depth++;
 
@@ -51,21 +59,36 @@ public class FlickrNetworkLoader implements IAsyncNetworkLoader {
 			return;
 		}
 
-		Collection<Contact> contacts = flickrAPI.getContactsInterface()
-				.getPublicList(contactId);
+		Collection<Contact> contacts = flickrAPI.getContactsInterface().getPublicList(contactId);
 
-		for (Contact contact : contacts) {
-			networkListener.acceptNewConnection(contactId, contact.getId(),
-					depth);
+		int maxToLoad;
+		if (depth > 1) {
+			maxToLoad = MAX_FRIENDS_PER_PERSON_TO_LOAD_2;
+		} else {
+			maxToLoad = MAX_FRIENDS_PER_PERSON_TO_LOAD_1;
 		}
 
+		int count = 0;
+		boolean create = true;
 		for (Contact contact : contacts) {
+
+			if (++count > maxToLoad) {
+				create = false;
+			}
+
+			networkListener.acceptNewConnection(contactId, contact.getId(), depth, create);
+		}
+
+		count = 0;
+		for (Contact contact : contacts) {
+			if (++count > maxToLoad) {
+				break;
+			}
 			loadRecursive(contact.getId(), depth, maxDepth, networkListener);
 		}
 	}
 
-	public void loadNetworkAsync(Person userRoot, int degrees,
-			INetworkListener networkListener) {
+	public void loadNetworkAsync(Person userRoot, int degrees, INetworkListener networkListener) {
 		(new NetworkLoaderThread(userRoot, degrees, networkListener)).start();
 
 	}
@@ -75,8 +98,7 @@ public class FlickrNetworkLoader implements IAsyncNetworkLoader {
 		private int degrees;
 		private Person userRoot;
 
-		public NetworkLoaderThread(Person userRoot, int degrees,
-				INetworkListener networkListener) {
+		public NetworkLoaderThread(Person userRoot, int degrees, INetworkListener networkListener) {
 			super("Network loader");
 			this.userRoot = userRoot;
 			this.degrees = degrees;
@@ -93,11 +115,12 @@ public class FlickrNetworkLoader implements IAsyncNetworkLoader {
 			}
 		}
 
-		public void loadNetwork() throws InterruptedException,
-				InvocationTargetException {
+		public void loadNetwork() throws InterruptedException, InvocationTargetException {
+			TrackedStatusMsg statusMsg = new TrackedStatusMsg("Loading " + userRoot + "'s friends");
+
 			SwingUtilities.invokeAndWait(new Runnable() {
 				public void run() {
-					userRoot.setPositionLocked(true);
+					userRoot.setAnchored(true);
 				}
 			});
 
@@ -106,11 +129,13 @@ public class FlickrNetworkLoader implements IAsyncNetworkLoader {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			SwingUtilities.invokeAndWait(new Runnable() {
-				public void run() {
-					userRoot.setPositionLocked(false);
-				}
-			});
+
+			// SwingUtilities.invokeAndWait(new Runnable() {
+			// public void run() {
+			// userRoot.setAnchored(false);
+			// }
+			// });
+			statusMsg.finished();
 		}
 	}
 

@@ -26,19 +26,6 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	 */
 	private static final long serialVersionUID = -7932645914185908518L;
 
-	private static URL constructProfileImgURL(int iconserver, String userID)
-			throws MalformedURLException {
-		if (iconserver > 0) {
-
-			return new URL("http://static.flickr.com/" + iconserver
-					+ "/buddyicons/" + userID + ".jpg");
-		} else {
-			return new URL("http://www.flickr.com/images/buddyicon.jpg");
-		}
-	}
-
-	// User owner;
-
 	private List<Comment> comments;
 
 	private List<PhotoPlace> contexts;
@@ -116,16 +103,6 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 
 	}
 
-	public URL getProfilePicUrl() {
-		try {
-			return constructProfileImgURL(myPhoto.getOwner().getIconServer(),
-					myPhoto.getOwner().getId());
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
 	public String getTitle() {
 		try {
 			return getPhoto().getTitle();
@@ -161,8 +138,7 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	public synchronized List<PhotoPlace> getContexts() throws FlickrException {
 		if (contexts == null) {
 			try {
-				contexts = flickrAPI.getPhotosInterface().getAllContexts(
-						myPhotoId);
+				contexts = flickrAPI.getPhotosInterface().getAllContexts(myPhotoId);
 			} catch (FlickrException e) {
 				throw e;
 			} catch (Exception e) {
@@ -176,8 +152,7 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	public synchronized Collection<Exif> getExifs() throws FlickrException {
 		if (exifs == null) {
 			try {
-				exifs = flickrAPI.getPhotosInterface().getExif(myPhotoId,
-						getPhoto().getSecret());
+				exifs = flickrAPI.getPhotosInterface().getExif(myPhotoId, getPhoto().getSecret());
 			} catch (FlickrException e) {
 				throw e;
 			} catch (Exception e) {
@@ -191,8 +166,7 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	public synchronized Collection<User> getFavorites() throws FlickrException {
 		if (favorites == null) {
 			try {
-				favorites = flickrAPI.getPhotosInterface().getFavorites(
-						myPhotoId, 30, 1);
+				favorites = flickrAPI.getPhotosInterface().getFavorites(myPhotoId, 30, 1);
 			} catch (FlickrException e) {
 				throw e;
 			} catch (Exception e) {
@@ -236,6 +210,51 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
+		}
+	}
+
+	public String getOwnerId() {
+		try {
+			return getPhoto().getOwner().getId();
+		} catch (FlickrException e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+
+	public String getOwnerName() {
+		try {
+			return getPhoto().getOwner().getRealName();
+		} catch (FlickrException e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+
+	public URL getOwnerProfilePicUrl() {
+		try {
+			return new URL(getPhoto().getOwner().getBuddyIconUrl());
+		} catch (FlickrException e) {
+			e.printStackTrace();
+
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+
+		}
+		try {
+			return new URL("");
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public String getOwnerLocation() {
+		try {
+			return getPhoto().getOwner().getLocation();
+		} catch (FlickrException e) {
+			e.printStackTrace();
+			return "";
 		}
 	}
 

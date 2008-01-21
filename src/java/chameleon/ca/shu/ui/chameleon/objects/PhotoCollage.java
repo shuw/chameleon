@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Stack;
 
+import ca.neo.ui.models.tooltips.TooltipBuilder;
 import ca.shu.ui.chameleon.adapters.IPhoto;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IStreamingSourceException;
@@ -33,6 +34,13 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 	private static final int MINIMUM_WIDTH = 200;
 
 	private static final long serialVersionUID = 1L;
+
+	@Override
+	protected void constructTooltips(TooltipBuilder builder) {
+		super.constructTooltips(builder);
+		builder.addProperty("Autoscroll", Boolean.toString(isAutoScrollEnabled()));
+
+	}
 
 	private static final int WIDTH_INTERVAL = 400;
 
@@ -523,7 +531,6 @@ class CollageInner extends WorldObjectImpl {
 
 		@Override
 		protected void activityFinished() {
-			// TODO Auto-generated method stub
 			super.activityFinished();
 			photoToRemove.destroy();
 		}

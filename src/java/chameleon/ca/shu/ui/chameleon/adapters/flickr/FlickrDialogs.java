@@ -6,15 +6,18 @@ import ca.shu.ui.chameleon.Chameleon;
 import ca.shu.ui.lib.exceptions.UIException;
 
 public class FlickrDialogs {
-	public static String askUserName() throws FlickrDialogException {
-		String userName = JOptionPane.showInputDialog(Chameleon.getInstance(),
-				"Please enter a Flickr username(ex. try '-shu-')");
+
+	public static String askDialog(String dialogMessage) throws FlickrDialogException {
+		String userName = JOptionPane.showInputDialog(Chameleon.getInstance(), dialogMessage);
 
 		if (userName == null || userName.compareTo("") == 0) {
 			throw new FlickrDialogException();
 		}
 		return userName;
+	}
 
+	public static String askUserName() throws FlickrDialogException {
+		return askDialog("Please enter a Flickr username(ex. try '-shu-')");
 	}
 
 	public static class FlickrDialogException extends UIException {

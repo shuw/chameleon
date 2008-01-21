@@ -1,10 +1,13 @@
 package ca.shu.ui.chameleon.objects;
 
 import ca.shu.ui.chameleon.adapters.IChameleonObj;
+import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs;
+import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs.FlickrDialogException;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
+import ca.shu.ui.lib.actions.UserCancelledException;
 import ca.shu.ui.lib.util.menus.AbstractMenuBuilder;
-import ca.shu.ui.lib.world.WorldObject;
+import ca.shu.ui.lib.world.elastic.ElasticObject;
 import edu.stanford.ejalbert.BrowserLauncher;
 import edu.stanford.ejalbert.exception.BrowserLaunchingExecutionException;
 import edu.stanford.ejalbert.exception.BrowserLaunchingInitializingException;
@@ -15,34 +18,89 @@ public class ChameleonMenus {
 
 	private static final double SCALE_FACTOR = 1.5;
 
-	protected static void constructMenu(WorldObject worldObj,
-			AbstractMenuBuilder menu) {
+	protected static void constructMenu(ElasticObject worldObj, AbstractMenuBuilder menu) {
 		constructMenu(worldObj, null, menu);
 	}
 
-	protected static void constructMenu(WorldObject worldObj,
-			IChameleonObj chamObj, AbstractMenuBuilder menu) {
+	protected static void constructMenu(ElasticObject worldObj, IChameleonObj chamObj,
+			AbstractMenuBuilder menu) {
 		ChameleonMenus chameleonMenu = new ChameleonMenus(worldObj, chamObj);
 		chameleonMenu.constructMenu(menu);
 	}
 
 	private IChameleonObj chameleonObj;
-	private WorldObject worldObj;
+	private ElasticObject worldObj;
 
-	public ChameleonMenus(WorldObject worldObj, IChameleonObj chameleonObj) {
+	public ChameleonMenus(ElasticObject worldObj, IChameleonObj chameleonObj) {
 		super();
 		this.worldObj = worldObj;
 		this.chameleonObj = chameleonObj;
 	}
 
 	protected void constructMenu(AbstractMenuBuilder menu) {
-		AbstractMenuBuilder objectMenu = menu.addSubMenu("Object");
+
+		if (!worldObj.isAnchored()) {
+			menu.addAction(new AnchorPosition("Anchor position", true));
+		} else {
+			menu.addAction(new AnchorPosition("Unanchor position", false));
+		}
+
+		AbstractMenuBuilder objectMenu = menu.addSubMenu("Transform");
 		objectMenu.addAction(new ChangeSizeAction("Grow", true));
 		objectMenu.addAction(new ChangeSizeAction("Shrink", false));
+		objectMenu.addAction(new RotateByAction("Rotate"));
 
 		if (chameleonObj != null) {
 			menu.addAction(new OpenURL("Open in browser", chameleonObj));
 		}
+	}
+
+	class AnchorPosition extends StandardAction {
+
+		private static final long serialVersionUID = 1L;
+		private boolean enabled;
+
+		public AnchorPosition(String description, boolean enabled) {
+			super(description);
+			this.enabled = enabled;
+		}
+
+		@Override
+		protected void action() throws ActionException {
+			worldObj.setAnchored(enabled);
+		}
+
+	}
+
+	class RotateByAction extends StandardAction {
+
+		public RotateByAction(String description) {
+			super(description);
+		}
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected void action() throws ActionException {
+			try {
+				String response = FlickrDialogs
+						.askDialog("Please enter number the degrees to rotate");
+
+				try {
+					double degrees = Double.parseDouble(response);
+
+					worldObj.setRotation(worldObj.getRotation() + ((degrees * Math.PI) / 180f));
+
+				} catch (NumberFormatException e) {
+					throw new ActionException("Invalid number");
+				}
+
+			} catch (FlickrDialogException e) {
+				throw new UserCancelledException();
+			}
+
+		}
+
 	}
 
 	class ChangeSizeAction extends StandardAction {
@@ -64,9 +122,8 @@ public class ChameleonMenus {
 			} else {
 				scale /= SCALE_FACTOR;
 			}
-			worldObj.animateToPositionScaleRotation(
-					worldObj.getOffset().getX(), worldObj.getOffset().getY(),
-					scale, worldObj.getRotation(), SCALE_DURATION_MS);
+			worldObj.animateToPositionScaleRotation(worldObj.getOffset().getX(), worldObj
+					.getOffset().getY(), scale, worldObj.getRotation(), SCALE_DURATION_MS);
 
 		}
 	}

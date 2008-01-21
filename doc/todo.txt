@@ -1,23 +1,30 @@
+*******************************************
+ Done
+*******************************************
 
-Done:
+*******************************************
+ Pri 0 - doing next
+*******************************************
+Fix anchor problem, create new layer in elastic ground for this stuff
+
+Make task messages world objects
+
+Create border around anchored objects, with anchored keyword below it
+
+Use transient popups to show comments
+
+Move relationship loading to PersonObject
+	add counter to show number of friends loaded / how many total
+
+Regular expression matching does not work with some characters
+
 Use popup messages to notify user of objects events
 
-Create search handler, searches ground nodes for matching characters
-
 Load friends from Person object, store friends there
-
-Write search code for searching nodes
 
 Elliptical path for object animation paths
 
 Open up social network in new window, show person's profile pic in window header
-
-TODO:
-
-Regular expression matching does not work with some characters
-
-
-Move objects to front when clicked upon
 
 Figure out a way to layer objects algorthimically
 	Perhaps when a person is brought to the front, 

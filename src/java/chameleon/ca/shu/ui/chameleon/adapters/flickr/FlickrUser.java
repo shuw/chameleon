@@ -3,9 +3,10 @@ package ca.shu.ui.chameleon.adapters.flickr;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import com.aetrion.flickr.people.User;
-
 import ca.shu.ui.chameleon.adapters.IUser;
+
+import com.aetrion.flickr.contacts.OnlineStatus;
+import com.aetrion.flickr.people.User;
 
 public class FlickrUser implements IUser {
 
@@ -44,5 +45,17 @@ public class FlickrUser implements IUser {
 	public URL getUrl() {
 
 		return FlickrAPI.getUserUrl(user.getId());
+	}
+
+	public String getAwayMessage() {
+		return user.getAwayMessage();
+	}
+
+	public String getLocation() {
+		return user.getLocation();
+	}
+
+	public OnlineStatus getOnline() {
+		return user.getOnline();
 	}
 }
