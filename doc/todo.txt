@@ -6,6 +6,12 @@ Comments, load them, and the people who made them, hide them after a while, show
 *******************************************
  Pri 0 - doing next
 *******************************************
+Support the case where one person comments twice, make sure the comments don't overlap
+
+Work on first-run experience, adding new objects should not overlap, focus on new objects created through file menu
+
+Add "exit" to file menu
+
 Anchor positions of photos when they are dragged into the world?
 
 Only have one comment runner at once,
@@ -49,3 +55,10 @@ Actions
 Get buttons for photo collage working
 
 Create a queue of network objects and close stale objects to open new ones
+
+*******************************************
+ Pri 1 - doing Eventually
+*******************************************
+
+Add links to other services such as Facebook and Spaces what's new, all in one world
+	Associate via Email IDs

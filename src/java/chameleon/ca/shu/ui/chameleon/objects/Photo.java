@@ -1,5 +1,6 @@
 package ca.shu.ui.chameleon.objects;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -39,6 +40,7 @@ import ca.shu.ui.lib.world.piccolo.WorldObjectImpl;
 import ca.shu.ui.lib.world.piccolo.objects.BoundsHandle;
 import ca.shu.ui.lib.world.piccolo.objects.Wrapper;
 import ca.shu.ui.lib.world.piccolo.primitives.Image;
+import ca.shu.ui.lib.world.piccolo.primitives.PXEdge;
 import ca.shu.ui.lib.world.piccolo.primitives.Text;
 
 import com.aetrion.flickr.Flickr;
@@ -342,7 +344,7 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 }
 
 class CommentLoader {
-	private static final double COMMENT_WIDTH = 200;
+
 	private static final int PERSON_COME_IN_MS = 1000;
 	private static final int PERSON_LEAVE_MS = 2000;
 	private static final int PERSON_LINGER_MS = 5000;
@@ -351,10 +353,10 @@ class CommentLoader {
 	private List<Comment> comments;
 	private Flickr flickrAPI;
 
-	private Photo photoParent;
+	private Photo photoTarget;
 
 	public CommentLoader(Photo photo) {
-		this.photoParent = photo;
+		this.photoTarget = photo;
 		flickrAPI = FlickrAPI.create();
 		(new Thread(new Runnable() {
 			public void run() {
@@ -364,7 +366,7 @@ class CommentLoader {
 	}
 
 	private void loadComment(Comment comment) {
-		if (photoParent.isDestroyed()) {
+		if (photoTarget.isDestroyed()) {
 			return;
 		}
 
@@ -373,7 +375,7 @@ class CommentLoader {
 		String authorId = comment.getAuthor();
 		try {
 			Person person = null;
-			WorldLayer layer = photoParent.getWorldLayer();
+			WorldLayer layer = photoTarget.getWorldLayer();
 			if (layer instanceof SocialGround) {
 				SocialGround socialGround = (SocialGround) layer;
 				person = socialGround.getPerson(authorId);
@@ -401,6 +403,8 @@ class CommentLoader {
 
 			}
 
+		} catch (InvocationTargetException e) {
+			e.getTargetException().printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -420,14 +424,22 @@ class CommentLoader {
 		if (comments == null) {
 			comments = new ArrayList<Comment>(0);
 			try {
-				comments = photoParent.getModel().getComments();
+				comments = photoTarget.getModel().getComments();
 			} catch (FlickrException e) {
 				e.printStackTrace();
 			}
 		}
 
+		if (comments.size() > 0) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					photoTarget.showPopupMessage("This photo has " + comments.size() + " comments");
+				}
+			});
+		}
+
 		for (Comment comment : comments) {
-			if (!photoParent.isDestroyed()) {
+			if (!photoTarget.isDestroyed()) {
 				loadComment(comment);
 			} else {
 				return;
@@ -446,8 +458,8 @@ class CommentLoader {
 
 			layer.addChild(person);
 
-			Point2D offset = photoParent.localToGlobal(new Point2D.Double(photoParent.getBounds()
-					.getCenterX(), photoParent.getBounds().getMinY() - 300));
+			Point2D offset = photoTarget.localToGlobal(new Point2D.Double(photoTarget.getBounds()
+					.getCenterX(), photoTarget.getBounds().getMinY() - 300));
 			person.setOffset(offset);
 
 			person.addActivity(new Fader(person, PERSON_COME_IN_MS, 1f));
@@ -456,9 +468,9 @@ class CommentLoader {
 		/*
 		 * Find position for the person to appear in
 		 */
-		double radius = photoParent.getWidth();
-		if (radius < photoParent.getHeight()) {
-			radius = photoParent.getHeight();
+		double radius = photoTarget.getWidth();
+		if (radius < photoTarget.getHeight()) {
+			radius = photoTarget.getHeight();
 		}
 		Random random = new Random();
 		double randomAngle = random.nextDouble() * 2d * Math.PI;
@@ -467,10 +479,10 @@ class CommentLoader {
 
 		double offsetY = (Math.sin(randomAngle) * radius) * randomOffset;
 		double offsetX = (Math.cos(randomAngle) * radius) * randomOffset;
-		offsetX += photoParent.getBounds().getCenterX();
-		offsetY += photoParent.getBounds().getCenterY();
+		offsetX += photoTarget.getBounds().getCenterX();
+		offsetY += photoTarget.getBounds().getCenterY();
 
-		Point2D newOffset = photoParent.localToGlobal(new Point2D.Double(offsetX, offsetY));
+		Point2D newOffset = photoTarget.localToGlobal(new Point2D.Double(offsetX, offsetY));
 
 		Point2D originalOffset = person.getOffset();
 		double originalScale = person.getScale();
@@ -481,7 +493,7 @@ class CommentLoader {
 				originalScale, originalRotation, PERSON_LINGER_MS);
 		person.animateToPosition(originalOffset.getX(), originalOffset.getY(), PERSON_LEAVE_MS);
 
-		CommentText commentObj = new CommentText(person, comment.getText());
+		CommentText commentObj = new CommentText(photoTarget, person, comment.getText());
 		long endCommentTime = System.currentTimeMillis() + PERSON_COME_IN_MS + PERSON_LINGER_MS
 				+ PERSON_LEAVE_MS;
 
@@ -511,76 +523,6 @@ class CommentLoader {
 
 	}
 
-	class CommentText extends Text implements EventListener {
-		private Person author;
-
-		public CommentText(Person author, String text) {
-			super(ChameleonUtil.processString(text, 50));
-			this.author = author;
-			init();
-		}
-
-		private void init() {
-			setFont(Style.FONT_LARGE);
-
-			author.getWorldLayer().addChild(this);
-
-			setConstrainWidthToTextWidth(false);
-			setWidth(COMMENT_WIDTH);
-			recomputeLayout();
-
-			double random = (new Random()).nextDouble() * 300;
-			if (random > 200) {
-				setTextPaint(Style.COLOR_LIGHT_BLUE);
-			} else if (random > 100) {
-				setTextPaint(Style.COLOR_LIGHT_GREEN);
-			} else {
-				setTextPaint(Style.COLOR_LIGHT_PURPLE);
-			}
-			author.addPropertyChangeListener(EventType.GLOBAL_BOUNDS, this);
-			author.addPropertyChangeListener(EventType.REMOVED_FROM_WORLD, this);
-
-			updatePosition();
-		}
-
-		private void updatePosition() {
-			Point2D position = new Point2D.Double(author.getWidth() * (0.3f),
-					author.getHeight() + 5);
-			position = author.localToGlobal(position);
-			setOffset(position);
-
-		}
-
-		@Override
-		protected void prepareForDestroy() {
-			author.removePropertyChangeListener(EventType.REMOVED_FROM_WORLD, this);
-			author.removePropertyChangeListener(EventType.GLOBAL_BOUNDS, this);
-			super.prepareForDestroy();
-		}
-
-		public void propertyChanged(EventType event) {
-			if (event == EventType.REMOVED_FROM_WORLD) {
-				destroy();
-			} else if (event == EventType.GLOBAL_BOUNDS) {
-				updatePosition();
-			}
-		}
-	}
-
-	class DestroyActivity extends PActivity {
-		private WorldObject obj;
-
-		public DestroyActivity(WorldObject obj) {
-			super(0);
-			this.obj = obj;
-		}
-
-		@Override
-		protected void activityStarted() {
-			obj.destroy();
-		}
-	}
-
 	class ShowCommentRunnable implements Runnable {
 		private Comment comment;
 		private WorldLayer layer;
@@ -605,8 +547,95 @@ class CommentLoader {
 				e.getTargetException().printStackTrace();
 			}
 		}
+
+	}
+}
+
+class CommentText extends Text implements EventListener {
+	private static final Color[] COMMENT_COLORS = { Style.COLOR_LIGHT_BLUE,
+			Style.COLOR_LIGHT_GREEN, Style.COLOR_LIGHT_PURPLE };
+	private static final double COMMENT_WIDTH = 200;
+
+	private Person author;
+	private Photo target;
+	private PXEdge edgeToPhoto;
+
+	public CommentText(Photo target, Person author, String text) {
+		super(ChameleonUtil.processString(text, 50));
+		this.author = author;
+		this.target = target;
+		init();
 	}
 
+	private void init() {
+		setFont(Style.FONT_LARGE);
+		author.getWorldLayer().addChild(this);
+
+		/*
+		 * Create edge holder to which holds the edge at the top left corner of
+		 * the comment
+		 */
+		WorldObjectImpl edgeHolder = new WorldObjectImpl();
+		edgeToPhoto = new PXEdge(target, edgeHolder);
+		edgeToPhoto.setStrokePaint(Style.COLOR_BACKGROUND2);
+
+		setConstrainWidthToTextWidth(false);
+		setWidth(COMMENT_WIDTH);
+		recomputeLayout();
+
+		double random = (new Random()).nextDouble() * COMMENT_COLORS.length;
+
+		for (int count = 0; count < COMMENT_COLORS.length; count++) {
+			if (random < ((double) count + 1d)) {
+				setTextPaint(COMMENT_COLORS[count]);
+				break;
+			}
+
+		}
+		author.addPropertyChangeListener(EventType.GLOBAL_BOUNDS, this);
+		author.addPropertyChangeListener(EventType.REMOVED_FROM_WORLD, this);
+
+		addChild(edgeHolder);
+		target.getPiccolo().addChild(0, edgeToPhoto);
+		updatePosition();
+	}
+
+	private void updatePosition() {
+		Point2D position = new Point2D.Double(author.getWidth() * (0.3f), author.getHeight() + 5);
+		position = author.localToGlobal(position);
+		setOffset(position);
+
+	}
+
+	@Override
+	protected void prepareForDestroy() {
+		edgeToPhoto.destroy();
+		author.removePropertyChangeListener(EventType.REMOVED_FROM_WORLD, this);
+		author.removePropertyChangeListener(EventType.GLOBAL_BOUNDS, this);
+		super.prepareForDestroy();
+	}
+
+	public void propertyChanged(EventType event) {
+		if (event == EventType.REMOVED_FROM_WORLD) {
+			destroy();
+		} else if (event == EventType.GLOBAL_BOUNDS) {
+			updatePosition();
+		}
+	}
+}
+
+class DestroyActivity extends PActivity {
+	private WorldObject obj;
+
+	public DestroyActivity(WorldObject obj) {
+		super(0);
+		this.obj = obj;
+	}
+
+	@Override
+	protected void activityStarted() {
+		obj.destroy();
+	}
 }
 
 /**
