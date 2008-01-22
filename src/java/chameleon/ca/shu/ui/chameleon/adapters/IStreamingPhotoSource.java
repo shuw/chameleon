@@ -3,6 +3,7 @@ package ca.shu.ui.chameleon.adapters;
 import java.util.Collection;
 
 import ca.shu.ui.chameleon.adapters.flickr.CrawlerState;
+import ca.shu.ui.chameleon.adapters.flickr.FlickrPhoto;
 
 public interface IStreamingPhotoSource {
 
@@ -12,7 +13,7 @@ public interface IStreamingPhotoSource {
 
 	public CrawlerState getState();
 
-	public Collection<IPhoto> getPhotos(int count) throws IStreamingSourceException,
+	public Collection<FlickrPhoto> getPhotos(int count) throws IStreamingSourceException,
 			SourceEmptyException;
 
 	public String getName();

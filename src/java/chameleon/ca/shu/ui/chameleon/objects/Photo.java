@@ -1,20 +1,28 @@
 package ca.shu.ui.chameleon.objects;
 
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 
 import javax.swing.SwingUtilities;
 
+import util.ChameleonUtil;
 import ca.neo.ui.models.tooltips.ITooltipPart;
 import ca.neo.ui.models.tooltips.TooltipBuilder;
 import ca.shu.ui.chameleon.adapters.IPhoto;
 import ca.shu.ui.chameleon.adapters.flickr.FileDownload;
+import ca.shu.ui.chameleon.adapters.flickr.FlickrAPI;
+import ca.shu.ui.chameleon.adapters.flickr.FlickrPhoto;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
+import ca.shu.ui.chameleon.adapters.flickr.FlickrUser;
 import ca.shu.ui.chameleon.adapters.flickr.PersonIcon;
+import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
@@ -26,14 +34,20 @@ import ca.shu.ui.lib.world.Interactable;
 import ca.shu.ui.lib.world.Searchable;
 import ca.shu.ui.lib.world.WorldLayer;
 import ca.shu.ui.lib.world.WorldObject;
+import ca.shu.ui.lib.world.activities.Fader;
 import ca.shu.ui.lib.world.piccolo.WorldObjectImpl;
 import ca.shu.ui.lib.world.piccolo.objects.BoundsHandle;
 import ca.shu.ui.lib.world.piccolo.objects.Wrapper;
 import ca.shu.ui.lib.world.piccolo.primitives.Image;
 import ca.shu.ui.lib.world.piccolo.primitives.Text;
 
+import com.aetrion.flickr.Flickr;
+import com.aetrion.flickr.FlickrException;
+import com.aetrion.flickr.people.User;
 import com.aetrion.flickr.photos.Size;
+import com.aetrion.flickr.photos.comments.Comment;
 
+import edu.umd.cs.piccolo.activities.PActivity;
 import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
 import edu.umd.cs.piccolo.event.PInputEvent;
 
@@ -60,6 +74,8 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 		return cacheFolder;
 	}
 
+	private CommentLoader commentLoader;
+
 	private int currentSize;
 
 	private boolean loadingImage = false;
@@ -70,13 +86,10 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 
 	private final Wrapper photoWrapper;
 
-	private IPhoto proxy;
-
 	private Collection<SearchValuePair> searchableValues;
 
-	public Photo(IPhoto photoData) {
+	public Photo(FlickrPhoto photoData) {
 		super(photoData);
-		this.proxy = photoData;
 		this.photoWrapper = new PhotoWrapper();
 		addChild(photoWrapper);
 		photoWrapper.addPropertyChangeListener(EventType.BOUNDS_CHANGED, new EventListener() {
@@ -150,7 +163,6 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 		if (canChangeResolution(false)) {
 			menu.addAction(new ChangeResolutionAction("- Resolution", false));
 		}
-
 	}
 
 	@Override
@@ -159,6 +171,9 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 
 		builder.addPart(new PhotoInfoBar(getModel()));
 
+		if (commentLoader == null) {
+			commentLoader = new CommentLoader(this);
+		}
 	}
 
 	public boolean acceptTarget(WorldObject target) {
@@ -179,12 +194,8 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 	// }
 
 	@Override
-	public IPhoto getModel() {
-		return (IPhoto) super.getModel();
-	}
-
-	public IPhoto getProxy() {
-		return proxy;
+	public FlickrPhoto getModel() {
+		return (FlickrPhoto) super.getModel();
 	}
 
 	public Collection<SearchValuePair> getSearchableValues() {
@@ -242,14 +253,15 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 			/*
 			 * Tries to find image in cache first
 			 */
-			File cachedImage = new File(getImageCacheFolder(proxy.getType()), proxy.getId()
+			File cachedImage = new File(getImageCacheFolder(getModel().getType()), getModel()
+					.getId()
 					+ "_Size" + currentSize + ".jpg");
 
 			if (!cachedImage.exists()) {
 				/*
 				 * Cache the image
 				 */
-				FileDownload.download(proxy.getImageUrl(currentSize).toString(), cachedImage
+				FileDownload.download(getModel().getImageUrl(currentSize).toString(), cachedImage
 						.toString());
 			}
 
@@ -328,6 +340,263 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 	}
 }
 
+class CommentLoader {
+	private static final double COMMENT_WIDTH = 200;
+	private static final int PERSON_COME_IN_MS = 1000;
+	private static final int PERSON_LEAVE_MS = 2000;
+	private static final int PERSON_LINGER_MS = 5000;
+	private static final int SHOW_COMMENT_DELAY_MS = 4000;
+
+	private List<Comment> comments;
+	private Flickr flickrAPI;
+
+	private Photo photoParent;
+
+	public CommentLoader(Photo photo) {
+		this.photoParent = photo;
+		flickrAPI = FlickrAPI.create();
+		(new Thread(new Runnable() {
+			public void run() {
+				loadComments();
+			}
+		})).start();
+	}
+
+	private void loadComment(Comment comment) {
+		if (photoParent.isDestroyed()) {
+			return;
+		}
+
+		long lastCommentShown = System.currentTimeMillis();
+		boolean newPerson = false;
+		String authorId = comment.getAuthor();
+		try {
+			Person person = null;
+			WorldLayer layer = photoParent.getWorldLayer();
+			if (layer instanceof SocialGround) {
+				SocialGround socialGround = (SocialGround) layer;
+				person = socialGround.getPerson(authorId);
+			}
+			if (person == null) {
+				/*
+				 * Create the person here
+				 */
+				User user = flickrAPI.getPeopleInterface().getInfo(authorId);
+				if (user != null) {
+					newPerson = true;
+					FlickrUser fUser = new FlickrUser(user);
+					person = new Person(fUser);
+
+				}
+			} else {
+				/*
+				 * Person already exists
+				 */
+			}
+
+			if (person != null) {
+				SwingUtilities.invokeAndWait(new ShowCommentRunnable(layer, person, comment,
+						newPerson));
+
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		long loadTime = System.currentTimeMillis() - lastCommentShown;
+
+		if (loadTime < SHOW_COMMENT_DELAY_MS) {
+			try {
+				Thread.sleep(SHOW_COMMENT_DELAY_MS - loadTime);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void loadComments() {
+		if (comments == null) {
+			comments = new ArrayList<Comment>(0);
+			try {
+				comments = photoParent.getModel().getComments();
+			} catch (FlickrException e) {
+				e.printStackTrace();
+			}
+		}
+
+		for (Comment comment : comments) {
+			if (!photoParent.isDestroyed()) {
+				loadComment(comment);
+			} else {
+				return;
+			}
+		}
+	}
+
+	private void showComment(WorldLayer layer, Person person, Comment comment, boolean newPerson)
+			throws InterruptedException, InvocationTargetException {
+		if (person.isDestroyed()) {
+			return;
+		}
+
+		if (newPerson) {
+			person.setTransparency(0f);
+
+			layer.addChild(person);
+
+			Point2D offset = photoParent.localToGlobal(new Point2D.Double(photoParent.getBounds()
+					.getCenterX(), photoParent.getBounds().getMinY() - 300));
+			person.setOffset(offset);
+
+			person.addActivity(new Fader(person, PERSON_COME_IN_MS, 1f));
+		}
+
+		/*
+		 * Find position for the person to appear in
+		 */
+		double radius = photoParent.getWidth();
+		if (radius < photoParent.getHeight()) {
+			radius = photoParent.getHeight();
+		}
+		Random random = new Random();
+		double randomAngle = random.nextDouble() * 2d * Math.PI;
+		double randomOffset = ((random.nextDouble() - 0.5d) * 0.2d) + 1d;
+		double randomRotation = (random.nextDouble() - 0.5d) * 0.4d;
+
+		double offsetY = (Math.sin(randomAngle) * radius) * randomOffset;
+		double offsetX = (Math.cos(randomAngle) * radius) * randomOffset;
+		offsetX += photoParent.getBounds().getCenterX();
+		offsetY += photoParent.getBounds().getCenterY();
+
+		Point2D newOffset = photoParent.localToGlobal(new Point2D.Double(offsetX, offsetY));
+
+		Point2D originalOffset = person.getOffset();
+		double originalScale = person.getScale();
+		double originalRotation = person.getRotation();
+		person.animateToPositionScaleRotation(newOffset.getX(), newOffset.getY(),
+				originalScale * 1.5d, randomRotation, PERSON_COME_IN_MS);
+		person.animateToPositionScaleRotation(newOffset.getX(), newOffset.getY() + 20,
+				originalScale, originalRotation, PERSON_LINGER_MS);
+		person.animateToPosition(originalOffset.getX(), originalOffset.getY(), PERSON_LEAVE_MS);
+
+		CommentText commentObj = new CommentText(person, comment.getText());
+		long endCommentTime = System.currentTimeMillis() + PERSON_COME_IN_MS + PERSON_LINGER_MS
+				+ PERSON_LEAVE_MS;
+
+		PActivity destroyComment = new DestroyActivity(commentObj);
+		destroyComment.setStartTime(endCommentTime);
+		photoParent.addActivity(destroyComment);
+
+		if (newPerson) {
+			/*
+			 * If we created the person, then remove them again
+			 */
+
+			PActivity destroyActivity = new DestroyActivity(person);
+			Fader fader = new Fader(person, PERSON_LEAVE_MS, 0f);
+
+			destroyActivity.setStartTime(endCommentTime);
+			fader.setStartTime(endCommentTime - PERSON_LEAVE_MS);
+
+			photoParent.addActivity(destroyActivity);
+			photoParent.addActivity(fader);
+		}
+
+	}
+
+	class CommentText extends Text implements EventListener {
+		private Person author;
+
+		public CommentText(Person author, String text) {
+			super(ChameleonUtil.processString(text, 50));
+			this.author = author;
+			init();
+		}
+
+		private void init() {
+			setFont(Style.FONT_LARGE);
+
+			author.getWorldLayer().addChild(this);
+
+			setConstrainWidthToTextWidth(false);
+			setWidth(COMMENT_WIDTH);
+			recomputeLayout();
+
+			double random = (new Random()).nextDouble() * 300;
+			if (random > 200) {
+				setTextPaint(Style.COLOR_LIGHT_BLUE);
+			} else if (random > 100) {
+				setTextPaint(Style.COLOR_LIGHT_GREEN);
+			} else {
+				setTextPaint(Style.COLOR_LIGHT_PURPLE);
+			}
+			author.addPropertyChangeListener(EventType.GLOBAL_BOUNDS, this);
+
+			updatePosition();
+		}
+
+		private void updatePosition() {
+			Point2D position = new Point2D.Double(author.getWidth() * (0.3f),
+					author.getHeight() + 5);
+			position = author.localToGlobal(position);
+			setOffset(position);
+
+		}
+
+		@Override
+		protected void prepareForDestroy() {
+			author.removePropertyChangeListener(EventType.GLOBAL_BOUNDS, this);
+			super.prepareForDestroy();
+		}
+
+		public void propertyChanged(EventType event) {
+			updatePosition();
+		}
+	}
+
+	class DestroyActivity extends PActivity {
+		private WorldObject obj;
+
+		public DestroyActivity(WorldObject obj) {
+			super(0);
+			this.obj = obj;
+		}
+
+		@Override
+		protected void activityStarted() {
+			obj.destroy();
+		}
+	}
+
+	class ShowCommentRunnable implements Runnable {
+		private Comment comment;
+		private WorldLayer layer;
+		private boolean newPerson;
+		private Person person;
+
+		public ShowCommentRunnable(WorldLayer layer, Person person, Comment comment,
+				boolean newPerson) {
+			super();
+			this.layer = layer;
+			this.person = person;
+			this.comment = comment;
+			this.newPerson = newPerson;
+		}
+
+		public void run() {
+			try {
+				showComment(layer, person, comment, newPerson);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				e.getTargetException().printStackTrace();
+			}
+		}
+	}
+
+}
+
 /**
  * Infor bar which shows the author, name , date url
  * 
@@ -338,6 +607,10 @@ class PhotoInfoBar implements ITooltipPart {
 	private double offsetY;
 
 	private IPhoto photo;
+
+	private WorldObject tooltipObj;
+
+	private double tooltipWidth;
 
 	public PhotoInfoBar(IPhoto photo) {
 		super();
@@ -356,9 +629,6 @@ class PhotoInfoBar implements ITooltipPart {
 		offsetY += text.getHeight();
 
 	}
-
-	private double tooltipWidth;
-	private WorldObject tooltipObj;
 
 	public WorldObject toWorldObject(double width) {
 		this.tooltipObj = new WorldObjectImpl();
@@ -381,10 +651,13 @@ class PhotoInfoBar implements ITooltipPart {
 		addText(offsetX, Date);
 		// addText(offsetX, Url);
 
-		Text description = new Text(photo.getDescription());
+		if (photo.getDescription() != null) {
+			String noHTMLString = ChameleonUtil.processString(photo.getDescription(), 200);
+			Text description = new Text(noHTMLString);
 
-		addText(0, description);
-		description.translate(0, 5);
+			addText(0, description);
+			description.translate(0, 5);
+		}
 
 		tooltipObj.setBounds(tooltipObj.parentToLocal(tooltipObj.getFullBounds()));
 		return tooltipObj;

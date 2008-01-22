@@ -4,8 +4,11 @@ import java.awt.geom.Point2D;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
+
+import util.ChameleonUtil;
 
 import ca.neo.ui.models.tooltips.TooltipBuilder;
 import ca.shu.ui.chameleon.actions.flickr.ExpandNetworkAction;
@@ -18,6 +21,7 @@ import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.objects.models.ModelObject;
+import ca.shu.ui.lib.util.menus.MenuBuilder;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
 import ca.shu.ui.lib.world.EventListener;
 import ca.shu.ui.lib.world.Interactable;
@@ -72,17 +76,44 @@ public class Person extends ModelObject implements Interactable, Searchable {
 		} else {
 			onlineStatus = "unknown";
 		}
+
+		builder.addProperty("Friends shown", "" + getFriends().size());
 		builder.addProperty("Online status", onlineStatus);
 	}
+
+	public final int MAX_FRIENDS_TO_SHOW_IN_MENU = 20;
 
 	@Override
 	protected void constructMenu(PopupMenuBuilder menu) {
 		super.constructMenu(menu);
 		ChameleonMenus.constructMenu(this, getModel(), menu);
 
-		if (getWorldLayer() instanceof SocialGround) {
-			SocialGround ground = (SocialGround) getWorldLayer();
-			menu.addAction(new ExpandNetworkAction("Show friends", 2, ground, this));
+		if (getFriends().size() > 0) {
+			MenuBuilder friends = menu.addSubMenu("Friends");
+
+			friends.addSection("Find more");
+			if (getWorldLayer() instanceof SocialGround) {
+				SocialGround ground = (SocialGround) getWorldLayer();
+				friends.addAction(new ExpandNetworkAction("In current window", 2, ground, this));
+			}
+			if (!isWindowEnabled()) {
+				friends.addAction(new SetWindowEnabled("In new window", true));
+			} else {
+				friends.addAction(new SetWindowEnabled("Close window", false));
+			}
+			friends.addSection("Navigate to");
+
+			int count = 0;
+			for (Person friend : getFriends()) {
+				friends.addAction(new NavigateToFriendAction(ChameleonUtil.processString(friend
+						.getName(), 17), friend));
+				if (++count >= MAX_FRIENDS_TO_SHOW_IN_MENU) {
+					friends.addLabel("     " + (getFriends().size() - MAX_FRIENDS_TO_SHOW_IN_MENU)
+							+ " more...");
+					break;
+				}
+
+			}
 		}
 
 		if (!isPhotosEnabled()) {
@@ -91,12 +122,23 @@ public class Person extends ModelObject implements Interactable, Searchable {
 			menu.addAction(new SetPhotosEnabledAction("Hide photos", false));
 		}
 
-		if (!isWindowEnabled()) {
-			menu.addAction(new SetWindowEnabled("Open new window", true));
-		} else {
-			menu.addAction(new SetWindowEnabled("Close window", false));
+	}
+
+	class NavigateToFriendAction extends StandardAction {
+		private Person friend;
+
+		public NavigateToFriendAction(String description, Person friend) {
+			super(description);
+			this.friend = friend;
 		}
 
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected void action() throws ActionException {
+			friend.getWorld().getSky().animateViewToCenterBounds(
+					friend.localToGlobal(friend.getBounds()), false, 1000);
+		}
 	}
 
 	protected boolean isWindowEnabled() {
@@ -248,6 +290,10 @@ public class Person extends ModelObject implements Interactable, Searchable {
 			setWindowEnabled(enabled);
 		}
 
+	}
+
+	public Collection<Person> getFriends() {
+		return Collections.unmodifiableCollection(friends);
 	}
 
 }

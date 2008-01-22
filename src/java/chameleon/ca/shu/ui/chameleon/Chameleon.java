@@ -19,6 +19,7 @@ import ca.shu.ui.lib.actions.UserCancelledException;
 import ca.shu.ui.lib.util.UIEnvironment;
 import ca.shu.ui.lib.util.menus.MenuBuilder;
 import ca.shu.ui.lib.world.elastic.ElasticWorld;
+import edu.umd.cs.piccolo.util.PDebug;
 
 public class Chameleon extends AppFrame {
 
@@ -35,14 +36,15 @@ public class Chameleon extends AppFrame {
 	}
 
 	public static void main(String[] args) throws Exception {
+//		PDebug.debugPaintCalls = true;
+		PDebug.debugThreads = true;
 		UIEnvironment.setDebugEnabled(true);
 		new Chameleon();
 	}
 
 	public Chameleon() {
 		if (myInstance != null) {
-			throw new RuntimeException(
-					"Only one instance of Chameleon can be running");
+			throw new RuntimeException("Only one instance of Chameleon can be running");
 		}
 		myInstance = this;
 
@@ -71,15 +73,12 @@ public class Chameleon extends AppFrame {
 
 		menuBar.add(fileMenu.getJMenu());
 
-		fileMenu.addAction(new LoadNetworkAction("Open social network", 2,
-				getChameleonHolder()), KeyEvent.VK_S);
+		fileMenu.addAction(new LoadNetworkAction("Open social network", 2, getChameleonHolder()),
+				KeyEvent.VK_S);
 
-		fileMenu.addAction(new OpenUserPhotos("Open user photos"),
-				KeyEvent.VK_P);
+		fileMenu.addAction(new OpenUserPhotos("Open user photos"), KeyEvent.VK_P);
 
-		fileMenu.addAction(
-				new OpenInterestingPhotos("Open interesting photos"),
-				KeyEvent.VK_P);
+		fileMenu.addAction(new OpenInterestingPhotos("Open interesting photos"), KeyEvent.VK_P);
 
 	}
 
@@ -117,8 +116,7 @@ public class Chameleon extends AppFrame {
 			try {
 				String userName = FlickrDialogs.askUserName();
 
-				FlickrPhotoSource source = FlickrPhotoSource
-						.createUserSource(userName);
+				FlickrPhotoSource source = FlickrPhotoSource.createUserSource(userName);
 				openPhotoSource(source);
 
 			} catch (FlickrDialogException e) {

@@ -111,7 +111,7 @@ public class FlickrNetworkLoader implements IAsyncNetworkLoader {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} catch (InvocationTargetException e) {
-				e.printStackTrace();
+				e.getTargetException().printStackTrace();
 			}
 		}
 

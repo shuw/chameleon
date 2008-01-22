@@ -121,11 +121,11 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 
 	public IPhoto getPhoto() throws IStreamingSourceException,
 			SourceEmptyException {
-		Collection<IPhoto> photos = getPhotos(1);
+		Collection<FlickrPhoto> photos = getPhotos(1);
 		return photos.iterator().next();
 	}
 
-	public Collection<IPhoto> getPhotos(int count)
+	public Collection<FlickrPhoto> getPhotos(int count)
 			throws IStreamingSourceException {
 		synchronized (photos) {
 			// retriever has stopped, throw error
@@ -134,7 +134,7 @@ public abstract class FlickrPhotoSource implements IStreamingPhotoSource {
 			}
 
 			photos.notifyAll(); // photos will change
-			Vector<IPhoto> photosToReturn = new Vector<IPhoto>(count);
+			Vector<FlickrPhoto> photosToReturn = new Vector<FlickrPhoto>(count);
 			for (int i = 0; i < count; i++) {
 				try {
 					while (photos.size() == 0) {

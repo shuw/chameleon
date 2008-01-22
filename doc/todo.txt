@@ -1,18 +1,24 @@
 *******************************************
  Done
 *******************************************
+Comments, load them, and the people who made them, hide them after a while, show them one by one
 
 *******************************************
  Pri 0 - doing next
 *******************************************
-Fix anchor problem, create new layer in elastic ground for this stuff
+Only have one comment runner at once,
+Investigate weird behavior where entire photo collage is dragged with photos.
+
+
+Navigate search results using click
+
+Bulge lines when clicked upon
 
 Make task messages world objects
 
-Create border around anchored objects, with anchored keyword below it
-
-Use transient popups to show comments
-
+Use PPositionPathActivity to animate objects
+	Elliptical path for object animation paths
+	
 Move relationship loading to PersonObject
 	add counter to show number of friends loaded / how many total
 
@@ -22,8 +28,6 @@ Use popup messages to notify user of objects events
 
 Load friends from Person object, store friends there
 
-Elliptical path for object animation paths
-
 Open up social network in new window, show person's profile pic in window header
 
 Figure out a way to layer objects algorthimically
@@ -32,36 +36,14 @@ Figure out a way to layer objects algorthimically
 	are brought to the front as well
 	
 
-In new social network window, show person's profile pic in window header
-
 Rendering html in Photo descriptions 
 
-
-Show photo pop up, show comments
-
-Limit external string sizes in UI (shorten long descriptions)
-
-modify TooltipParts to return WorldObject
-
-open new worlds within the world
-
-allow objects to be dragged out of Photo Collage
-
-
-
-
 Show warning message when source has no photos
-
-
-lock image positions when photo collage is open
-
 
 Actions
 	get comments, bring in new people from sn network
 	expand social network
 
 Get buttons for photo collage working
-
-Center objects when created
 
 Create a queue of network objects and close stale objects to open new ones

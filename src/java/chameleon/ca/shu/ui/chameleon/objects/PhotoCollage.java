@@ -5,10 +5,10 @@ import java.util.LinkedList;
 import java.util.Stack;
 
 import ca.neo.ui.models.tooltips.TooltipBuilder;
-import ca.shu.ui.chameleon.adapters.IPhoto;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IStreamingSourceException;
 import ca.shu.ui.chameleon.adapters.SourceEmptyException;
+import ca.shu.ui.chameleon.adapters.flickr.FlickrPhoto;
 import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
@@ -202,7 +202,7 @@ public class PhotoCollage extends ModelObject implements IStreamingPhotoHolder {
 			while (autoRetrieveEnabled && !PhotoCollage.this.isDestroyed()) {
 				if (!collage.isImageQueueIsFull()) {
 					try {
-						Collection<IPhoto> photos;
+						Collection<FlickrPhoto> photos;
 						photos = photoSource.getPhotos(1);
 
 						if (photos.size() > 0) {
@@ -450,7 +450,7 @@ class CollageInner extends WorldObjectImpl {
 
 	}
 
-	public boolean addPhoto(IPhoto p) {
+	public boolean addPhoto(FlickrPhoto p) {
 		synchronized (photoQueue) {
 
 			// create the GPhoto object and wait for the image to load
