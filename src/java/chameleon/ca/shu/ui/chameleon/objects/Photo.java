@@ -486,21 +486,26 @@ class CommentLoader {
 
 		PActivity destroyComment = new DestroyActivity(commentObj);
 		destroyComment.setStartTime(endCommentTime);
-		photoParent.addActivity(destroyComment);
+
+		Fader fadeComment = new Fader(commentObj, PERSON_LEAVE_MS, 0f);
+		fadeComment.setStartTime(endCommentTime - PERSON_LEAVE_MS);
+
+		layer.addActivity(destroyComment);
+		layer.addActivity(fadeComment);
 
 		if (newPerson) {
 			/*
 			 * If we created the person, then remove them again
 			 */
 
-			PActivity destroyActivity = new DestroyActivity(person);
-			Fader fader = new Fader(person, PERSON_LEAVE_MS, 0f);
+			PActivity destroyPerson = new DestroyActivity(person);
+			Fader fadePerson = new Fader(person, PERSON_LEAVE_MS, 0f);
+			fadePerson.setStartTime(endCommentTime - PERSON_LEAVE_MS);
 
-			destroyActivity.setStartTime(endCommentTime);
-			fader.setStartTime(endCommentTime - PERSON_LEAVE_MS);
+			destroyPerson.setStartTime(endCommentTime);
 
-			photoParent.addActivity(destroyActivity);
-			photoParent.addActivity(fader);
+			layer.addActivity(destroyPerson);
+			layer.addActivity(fadePerson);
 		}
 
 	}
@@ -532,6 +537,7 @@ class CommentLoader {
 				setTextPaint(Style.COLOR_LIGHT_PURPLE);
 			}
 			author.addPropertyChangeListener(EventType.GLOBAL_BOUNDS, this);
+			author.addPropertyChangeListener(EventType.REMOVED_FROM_WORLD, this);
 
 			updatePosition();
 		}
@@ -546,12 +552,17 @@ class CommentLoader {
 
 		@Override
 		protected void prepareForDestroy() {
+			author.removePropertyChangeListener(EventType.REMOVED_FROM_WORLD, this);
 			author.removePropertyChangeListener(EventType.GLOBAL_BOUNDS, this);
 			super.prepareForDestroy();
 		}
 
 		public void propertyChanged(EventType event) {
-			updatePosition();
+			if (event == EventType.REMOVED_FROM_WORLD) {
+				destroy();
+			} else if (event == EventType.GLOBAL_BOUNDS) {
+				updatePosition();
+			}
 		}
 	}
 

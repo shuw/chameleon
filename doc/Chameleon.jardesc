@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<jardesc>
+    <jar path="C:/Chameleon/Chameleon.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/chameleon/doc/Chameleon.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="false" mainClassHandleIdentifier="=chameleon/src\/java\/chameleon&lt;ca.shu.ui.chameleon{Chameleon.java[Chameleon" manifestLocation="/chameleon/doc/manifest.mf" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=simulator-ui/src\/java\/piccoloX"/>
+        <folder path="/chameleon/images"/>
+        <folder path="/chameleon/src"/>
+        <javaElement handleIdentifier="=simulator-ui/src\/java\/main"/>
+        <folder path="/chameleon/doc"/>
+        <file path="/chameleon/.project"/>
+        <file path="/chameleon/.classpath"/>
+        <javaElement handleIdentifier="=chameleon/src\/java\/chameleon"/>
+    </selectedElements>
+</jardesc>
