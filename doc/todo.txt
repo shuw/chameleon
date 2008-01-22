@@ -6,6 +6,8 @@ Comments, load them, and the people who made them, hide them after a while, show
 *******************************************
  Pri 0 - doing next
 *******************************************
+Anchor positions of photos when they are dragged into the world?
+
 Only have one comment runner at once,
 Investigate weird behavior where entire photo collage is dragged with photos.
 

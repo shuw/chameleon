@@ -171,7 +171,7 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 
 		builder.addPart(new PhotoInfoBar(getModel()));
 
-		if (commentLoader == null) {
+		if (commentLoader == null && getParent() instanceof SocialGround) {
 			commentLoader = new CommentLoader(this);
 		}
 	}
@@ -179,9 +179,10 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 	public boolean acceptTarget(WorldObject target) {
 		if (target instanceof WorldLayer) {
 			return true;
-		} else {
-			return false;
+		} else if (target instanceof PhotoCollage) {
+			return true;
 		}
+		return false;
 	}
 
 	// @Override

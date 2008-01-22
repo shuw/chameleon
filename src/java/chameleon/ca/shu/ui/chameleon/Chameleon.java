@@ -18,6 +18,7 @@ import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.actions.UserCancelledException;
 import ca.shu.ui.lib.util.UIEnvironment;
 import ca.shu.ui.lib.util.menus.MenuBuilder;
+import ca.shu.ui.lib.world.activities.Fader;
 import ca.shu.ui.lib.world.elastic.ElasticWorld;
 import edu.umd.cs.piccolo.util.PDebug;
 
@@ -36,7 +37,7 @@ public class Chameleon extends AppFrame {
 	}
 
 	public static void main(String[] args) throws Exception {
-//		PDebug.debugPaintCalls = true;
+		// PDebug.debugPaintCalls = true;
 		PDebug.debugThreads = true;
 		UIEnvironment.setDebugEnabled(true);
 		new Chameleon();
@@ -84,8 +85,16 @@ public class Chameleon extends AppFrame {
 
 	private void openPhotoSource(IStreamingPhotoSource photoSource) {
 		PhotoCollage collage = new PhotoCollage(photoSource);
+		collage.setTransparency(0f);
+		collage.setScale(0.7f);
+		collage.setOffset(0, -400);
 
 		getWorld().getGround().addChild(collage);
+
+		Fader fader = new Fader(collage, 1000, 1f);
+		collage.animateToPositionScaleRotation(0, 0, 0.7f, 0, 1000);
+		getWorld().getGround().addActivity(fader);
+
 	}
 
 	class OpenInterestingPhotos extends StandardAction {
