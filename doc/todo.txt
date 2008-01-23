@@ -2,14 +2,14 @@
  Done
 *******************************************
 Comments, load them, and the people who made them, hide them after a while, show them one by one
-
+Remove pictures from search term when dragged
 *******************************************
  Pri 0 - doing next
 *******************************************
 Improve force mass function
 Make searchterm anchorable
 
-Drag and shake a picture, it's connection is removed from the searchTerm bo
+
 
 Flickr friend loader needs to be attached to an object, it needs to be destroyed when object is destroyed.
 
