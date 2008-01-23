@@ -117,7 +117,7 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public synchronized List<Comment> getComments() throws FlickrException {
+	public List<Comment> getComments() throws FlickrException {
 		if (comments == null) {
 			try {
 				CommentsInterface commentInterface = new CommentsInterface(
@@ -135,7 +135,7 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public synchronized List<PhotoPlace> getContexts() throws FlickrException {
+	public List<PhotoPlace> getContexts() throws FlickrException {
 		if (contexts == null) {
 			try {
 				contexts = flickrAPI.getPhotosInterface().getAllContexts(myPhotoId);
@@ -149,7 +149,7 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public synchronized Collection<Exif> getExifs() throws FlickrException {
+	public Collection<Exif> getExifs() throws FlickrException {
 		if (exifs == null) {
 			try {
 				exifs = flickrAPI.getPhotosInterface().getExif(myPhotoId, getPhoto().getSecret());
@@ -163,7 +163,7 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public synchronized Collection<User> getFavorites() throws FlickrException {
+	public Collection<User> getFavorites() throws FlickrException {
 		if (favorites == null) {
 			try {
 				favorites = flickrAPI.getPhotosInterface().getFavorites(myPhotoId, 30, 1);
@@ -176,7 +176,7 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 		return favorites;
 	}
 
-	public synchronized Photo getPhoto() throws FlickrException {
+	public Photo getPhoto() throws FlickrException {
 		if (myPhoto == null) {
 			try {
 				myPhoto = flickrAPI.getPhotosInterface().getInfo(myPhotoId, "");
@@ -191,7 +191,7 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public synchronized Collection<Size> getSizes() throws FlickrException {
+	public Collection<Size> getSizes() throws FlickrException {
 		if (sizes == null) {
 			try {
 				sizes = flickrAPI.getPhotosInterface().getSizes(myPhotoId);

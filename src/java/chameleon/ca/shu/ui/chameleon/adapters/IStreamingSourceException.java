@@ -9,7 +9,6 @@ public class IStreamingSourceException extends Exception {
 
 	public IStreamingSourceException(String message) {
 		super(message);
-		// TODO Auto-generated constructor stub
 	}
 
 }

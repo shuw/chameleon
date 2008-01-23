@@ -8,14 +8,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 
-import util.ChameleonUtil;
-
 import ca.neo.ui.models.tooltips.TooltipBuilder;
 import ca.shu.ui.chameleon.actions.flickr.ExpandNetworkAction;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
 import ca.shu.ui.chameleon.adapters.flickr.PersonIcon;
+import ca.shu.ui.chameleon.util.ChameleonUtil;
 import ca.shu.ui.chameleon.world.ChameleonStyle;
 import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.actions.ActionException;

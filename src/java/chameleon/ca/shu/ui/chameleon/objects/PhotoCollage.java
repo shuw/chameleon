@@ -455,15 +455,7 @@ class CollageInner extends WorldObjectImpl {
 
 			// create the GPhoto object and wait for the image to load
 			Photo photo = new Photo(p);
-			synchronized (photo) {
-				try {
-					while (!photo.isLoaded()) {
-						photo.wait();
-					}
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
+			photo.waitForPhotoLoad();
 
 			if (photo == null) {
 				System.out.println("Could not create GPhoto");

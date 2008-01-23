@@ -6,6 +6,12 @@ Comments, load them, and the people who made them, hide them after a while, show
 *******************************************
  Pri 0 - doing next
 *******************************************
+Increase minimum distance around photos, add size property to ElasticObject
+
+Do multi word search
+
+Fade in comments as well.
+
 Support the case where one person comments twice, make sure the comments don't overlap
 
 Work on first-run experience, adding new objects should not overlap, focus on new objects created through file menu

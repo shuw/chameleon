@@ -13,7 +13,6 @@ import java.util.Random;
 
 import javax.swing.SwingUtilities;
 
-import util.ChameleonUtil;
 import ca.neo.ui.models.tooltips.ITooltipPart;
 import ca.neo.ui.models.tooltips.TooltipBuilder;
 import ca.shu.ui.chameleon.adapters.IPhoto;
@@ -23,12 +22,14 @@ import ca.shu.ui.chameleon.adapters.flickr.FlickrPhoto;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrUser;
 import ca.shu.ui.chameleon.adapters.flickr.PersonIcon;
+import ca.shu.ui.chameleon.util.ChameleonUtil;
 import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.objects.models.ModelObject;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
+import ca.shu.ui.lib.world.Destroyable;
 import ca.shu.ui.lib.world.Droppable;
 import ca.shu.ui.lib.world.EventListener;
 import ca.shu.ui.lib.world.Interactable;
@@ -49,7 +50,6 @@ import com.aetrion.flickr.people.User;
 import com.aetrion.flickr.photos.Size;
 import com.aetrion.flickr.photos.comments.Comment;
 
-import edu.umd.cs.piccolo.activities.PActivity;
 import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
 import edu.umd.cs.piccolo.event.PInputEvent;
 
@@ -158,12 +158,59 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 		super.constructMenu(menu);
 		ChameleonMenus.constructMenu(this, getModel(), menu);
 
+		menu.addSection("Photo");
+
 		if (canChangeResolution(true)) {
 			menu.addAction(new ChangeResolutionAction("+ Resolution", true));
 
 		}
 		if (canChangeResolution(false)) {
 			menu.addAction(new ChangeResolutionAction("- Resolution", false));
+		}
+
+		if (!isCommentsShown()) {
+			menu.addAction(new SetCommentsEnabledAction("Show comments", true));
+		} else {
+			menu.addAction(new SetCommentsEnabledAction("Hide comments", false));
+		}
+
+	}
+
+	class SetCommentsEnabledAction extends StandardAction {
+		private boolean enabled;
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected void action() throws ActionException {
+			setChildrenPickable(enabled);
+		}
+
+		public SetCommentsEnabledAction(String description, boolean enabled) {
+			super(description);
+			this.enabled = enabled;
+		}
+
+	}
+
+	public void setCommentsVisible(boolean visible) {
+		if (visible) {
+			if (!isCommentsShown()) {
+				commentLoader = new CommentLoader(this);
+			}
+		} else {
+			if (isCommentsShown()) {
+				commentLoader.destroy();
+				commentLoader = null;
+			}
+		}
+	}
+
+	public boolean isCommentsShown() {
+		if (commentLoader != null && commentLoader.isAlive()) {
+			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -173,9 +220,6 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 
 		builder.addPart(new PhotoInfoBar(getModel()));
 
-		if (commentLoader == null && getParent() instanceof SocialGround) {
-			commentLoader = new CommentLoader(this);
-		}
 	}
 
 	public boolean acceptTarget(WorldObject target) {
@@ -210,7 +254,7 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 		return "Photo";
 	}
 
-	public boolean isLoaded() {
+	private boolean isLoaded() {
 		return (photoImage != null);
 	}
 
@@ -316,6 +360,19 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 		}
 	}
 
+	public void waitForPhotoLoad() {
+		while (!isLoaded()) {
+			synchronized (this) {
+				try {
+					this.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+	}
+
 	class PhotoResizeHandler extends PBasicInputEventHandler {
 		Photo photo;
 
@@ -343,7 +400,7 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 	}
 }
 
-class CommentLoader {
+class CommentLoader implements Destroyable {
 
 	private static final int PERSON_COME_IN_MS = 1000;
 	private static final int PERSON_LEAVE_MS = 2000;
@@ -361,8 +418,15 @@ class CommentLoader {
 		(new Thread(new Runnable() {
 			public void run() {
 				loadComments();
+				destroy();
 			}
-		})).start();
+		}, "Comment loader")).start();
+	}
+
+	private boolean isAlive = true;
+
+	public boolean isAlive() {
+		return isAlive;
 	}
 
 	private void loadComment(Comment comment) {
@@ -410,7 +474,7 @@ class CommentLoader {
 		}
 
 		long loadTime = System.currentTimeMillis() - lastCommentShown;
-
+		System.out.println("A comment was loaded");
 		if (loadTime < SHOW_COMMENT_DELAY_MS) {
 			try {
 				Thread.sleep(SHOW_COMMENT_DELAY_MS - loadTime);
@@ -421,6 +485,7 @@ class CommentLoader {
 	}
 
 	private void loadComments() {
+
 		if (comments == null) {
 			comments = new ArrayList<Comment>(0);
 			try {
@@ -430,13 +495,15 @@ class CommentLoader {
 			}
 		}
 
-		if (comments.size() > 0) {
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					photoTarget.showPopupMessage("This photo has " + comments.size() + " comments");
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				if (comments.size() > 0) {
+					photoTarget.showPopupMessage(comments.size() + " comments found here");
+				} else {
+					photoTarget.showPopupMessage("No comments here");
 				}
-			});
-		}
+			}
+		});
 
 		for (Comment comment : comments) {
 			if (!photoTarget.isDestroyed()) {
@@ -447,9 +514,11 @@ class CommentLoader {
 		}
 	}
 
+	private static final double NEW_PERSON_DROP_DISTANCE = 800;
+
 	private void showComment(WorldLayer layer, Person person, Comment comment, boolean newPerson)
 			throws InterruptedException, InvocationTargetException {
-		if (person.isDestroyed()) {
+		if (person.isDestroyed() || !isAlive) {
 			return;
 		}
 
@@ -459,7 +528,7 @@ class CommentLoader {
 			layer.addChild(person);
 
 			Point2D offset = photoTarget.localToGlobal(new Point2D.Double(photoTarget.getBounds()
-					.getCenterX(), photoTarget.getBounds().getMinY() - 300));
+					.getCenterX(), photoTarget.getBounds().getMinY() - NEW_PERSON_DROP_DISTANCE));
 			person.setOffset(offset);
 
 			person.addActivity(new Fader(person, PERSON_COME_IN_MS, 1f));
@@ -468,21 +537,11 @@ class CommentLoader {
 		/*
 		 * Find position for the person to appear in
 		 */
-		double radius = photoTarget.getWidth();
-		if (radius < photoTarget.getHeight()) {
-			radius = photoTarget.getHeight();
-		}
-		Random random = new Random();
-		double randomAngle = random.nextDouble() * 2d * Math.PI;
-		double randomOffset = ((random.nextDouble() - 0.5d) * 0.2d) + 1d;
-		double randomRotation = (random.nextDouble() - 0.5d) * 0.4d;
 
-		double offsetY = (Math.sin(randomAngle) * radius) * randomOffset;
-		double offsetX = (Math.cos(randomAngle) * radius) * randomOffset;
-		offsetX += photoTarget.getBounds().getCenterX();
-		offsetY += photoTarget.getBounds().getCenterY();
+		double randomRotation = ((new Random()).nextDouble() - 0.5d) * 0.4d;
 
-		Point2D newOffset = photoTarget.localToGlobal(new Point2D.Double(offsetX, offsetY));
+		Point2D newOffset = photoTarget.localToGlobal(ChameleonUtil
+				.getRandomPointAroundObj(photoTarget));
 
 		Point2D originalOffset = person.getOffset();
 		double originalScale = person.getScale();
@@ -494,31 +553,16 @@ class CommentLoader {
 		person.animateToPosition(originalOffset.getX(), originalOffset.getY(), PERSON_LEAVE_MS);
 
 		CommentText commentObj = new CommentText(photoTarget, person, comment.getText());
-		long endCommentTime = System.currentTimeMillis() + PERSON_COME_IN_MS + PERSON_LINGER_MS
-				+ PERSON_LEAVE_MS;
+		long startFadingTime = System.currentTimeMillis() + PERSON_COME_IN_MS + PERSON_LINGER_MS;
 
-		PActivity destroyComment = new DestroyActivity(commentObj);
-		destroyComment.setStartTime(endCommentTime);
-
-		Fader fadeComment = new Fader(commentObj, PERSON_LEAVE_MS, 0f);
-		fadeComment.setStartTime(endCommentTime - PERSON_LEAVE_MS);
-
-		layer.addActivity(destroyComment);
-		layer.addActivity(fadeComment);
+		ChameleonUtil.FadeAndDestroy(commentObj, startFadingTime, PERSON_LEAVE_MS);
 
 		if (newPerson) {
 			/*
 			 * If we created the person, then remove them again
 			 */
+			ChameleonUtil.FadeAndDestroy(person, startFadingTime, PERSON_LEAVE_MS);
 
-			PActivity destroyPerson = new DestroyActivity(person);
-			Fader fadePerson = new Fader(person, PERSON_LEAVE_MS, 0f);
-			fadePerson.setStartTime(endCommentTime - PERSON_LEAVE_MS);
-
-			destroyPerson.setStartTime(endCommentTime);
-
-			layer.addActivity(destroyPerson);
-			layer.addActivity(fadePerson);
 		}
 
 	}
@@ -547,6 +591,11 @@ class CommentLoader {
 				e.getTargetException().printStackTrace();
 			}
 		}
+
+	}
+
+	public void destroy() {
+		isAlive = false;
 
 	}
 }
@@ -621,20 +670,6 @@ class CommentText extends Text implements EventListener {
 		} else if (event == EventType.GLOBAL_BOUNDS) {
 			updatePosition();
 		}
-	}
-}
-
-class DestroyActivity extends PActivity {
-	private WorldObject obj;
-
-	public DestroyActivity(WorldObject obj) {
-		super(0);
-		this.obj = obj;
-	}
-
-	@Override
-	protected void activityStarted() {
-		obj.destroy();
 	}
 }
 

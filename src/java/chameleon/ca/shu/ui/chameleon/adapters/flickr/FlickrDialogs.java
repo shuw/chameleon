@@ -20,6 +20,11 @@ public class FlickrDialogs {
 		return askDialog("Please enter a Flickr username(ex. try '-shu-')");
 	}
 
+	public static String askSearchTerm() throws FlickrDialogException {
+		return askDialog("Please enter search term to show most interesting photos for");
+	}
+
+	
 	public static class FlickrDialogException extends UIException {
 
 		private static final long serialVersionUID = 1L;
