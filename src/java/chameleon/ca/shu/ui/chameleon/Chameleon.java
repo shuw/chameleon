@@ -39,6 +39,7 @@ public class Chameleon extends AppFrame {
 
 	public static void main(String[] args) throws Exception {
 		// PDebug.debugPaintCalls = true;
+
 		PDebug.debugThreads = true;
 		UIEnvironment.setDebugEnabled(true);
 		new Chameleon();
@@ -49,7 +50,7 @@ public class Chameleon extends AppFrame {
 			throw new RuntimeException("Only one instance of Chameleon can be running");
 		}
 		myInstance = this;
-
+		(new HighQualityAction()).doAction();
 		getCanvas().getWorld().getGround().setElasticEnabled(true);
 	}
 

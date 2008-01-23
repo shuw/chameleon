@@ -11,8 +11,8 @@ import ca.shu.ui.chameleon.adapters.flickr.FlickrPhoto;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
 import ca.shu.ui.chameleon.util.ChameleonUtil;
 import ca.shu.ui.lib.world.activities.Fader;
+import ca.shu.ui.lib.world.elastic.ElasticEdge;
 import ca.shu.ui.lib.world.elastic.ElasticObject;
-import ca.shu.ui.lib.world.piccolo.primitives.PXEdge;
 import ca.shu.ui.lib.world.piccolo.primitives.Text;
 
 public class SearchTerm extends ElasticObject {
@@ -43,13 +43,13 @@ public class SearchTerm extends ElasticObject {
 
 	private void addPhotoToWorld(Photo photo) {
 
-		Point2D randomOffset = ChameleonUtil.getRandomPointAroundObj(this, 800);
+		Point2D randomOffset = ChameleonUtil.getRandomPointAroundObj(this, 700);
 
 		photo.setOffset(localToGlobal(randomOffset));
 		photo.setTransparency(0f);
 		Fader fader = new Fader(photo, 500, 1f);
 
-		PXEdge edge = new PXEdge(this, photo);
+		ElasticEdge edge = new ElasticEdge(this, photo, 700);
 
 		getWorldLayer().addEdge(edge);
 		getWorldLayer().addChild(photo);

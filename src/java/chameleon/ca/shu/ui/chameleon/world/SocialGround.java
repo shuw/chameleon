@@ -9,8 +9,8 @@ import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.lib.util.Util;
 import ca.shu.ui.lib.world.WorldObject;
 import ca.shu.ui.lib.world.activities.Fader;
+import ca.shu.ui.lib.world.elastic.ElasticEdge;
 import ca.shu.ui.lib.world.elastic.ElasticGround;
-import ca.shu.ui.lib.world.piccolo.primitives.PXEdge;
 
 /**
  * Ground which can hold a social network
@@ -97,7 +97,7 @@ public class SocialGround extends ElasticGround {
 			/*
 			 * Add an edge if the relationship didn't exist before
 			 */
-			PXEdge edge = new PXEdge(userA, userB, false);
+			ElasticEdge edge = new ElasticEdge(userA, userB, 300, false);
 			addEdge(edge);
 		}
 		return true;
