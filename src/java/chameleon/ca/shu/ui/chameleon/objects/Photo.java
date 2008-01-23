@@ -183,7 +183,7 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 
 		@Override
 		protected void action() throws ActionException {
-			setChildrenPickable(enabled);
+			setCommentsVisible(enabled);
 		}
 
 		public SetCommentsEnabledAction(String description, boolean enabled) {
@@ -474,7 +474,6 @@ class CommentLoader implements Destroyable {
 		}
 
 		long loadTime = System.currentTimeMillis() - lastCommentShown;
-		System.out.println("A comment was loaded");
 		if (loadTime < SHOW_COMMENT_DELAY_MS) {
 			try {
 				Thread.sleep(SHOW_COMMENT_DELAY_MS - loadTime);

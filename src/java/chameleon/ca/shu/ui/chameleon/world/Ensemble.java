@@ -31,7 +31,7 @@ public class Ensemble extends ElasticObject implements Interactable {
 	public Ensemble(Collection<WorldObject> objects) {
 		super();
 		setSelectable(true);
-		this.addChild(new Image("images/chameleonIcons/Group.gif"));
+		this.addChild(new Image("images//chameleonIcons//Group.gif"));
 		setBounds(parentToLocal(getFullBounds()));
 
 		this.objectsRef = new ArrayList<WeakReference<WorldObject>>(objects.size());

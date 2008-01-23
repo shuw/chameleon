@@ -22,8 +22,8 @@ public class ChameleonUtil {
 	}
 
 	public static Point2D getRandomPointAroundObj(WorldObject obj) {
-		double radius = Math.sqrt((obj.getWidth() * obj.getWidth())
-				+ (obj.getHeight() * obj.getHeight()));
+		double radius = (Math.sqrt((obj.getWidth() * obj.getWidth())
+				+ (obj.getHeight() * obj.getHeight()))) / 2d;
 		radius *= 1.3d;
 
 		return getRandomPointAroundObj(obj, radius);

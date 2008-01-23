@@ -6,6 +6,8 @@ Comments, load them, and the people who made them, hide them after a while, show
 *******************************************
  Pri 0 - doing next
 *******************************************
+Flickr friend loader needs to be attached to an object, it needs to be destroyed when object is destroyed.
+
 Increase minimum distance around photos, add size property to ElasticObject
 
 Do multi word search
