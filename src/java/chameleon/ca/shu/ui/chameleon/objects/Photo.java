@@ -28,14 +28,15 @@ import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.objects.models.ModelObject;
+import ca.shu.ui.lib.util.Util;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
 import ca.shu.ui.lib.world.Destroyable;
 import ca.shu.ui.lib.world.Droppable;
-import ca.shu.ui.lib.world.EventListener;
 import ca.shu.ui.lib.world.Interactable;
 import ca.shu.ui.lib.world.Searchable;
 import ca.shu.ui.lib.world.WorldLayer;
 import ca.shu.ui.lib.world.WorldObject;
+import ca.shu.ui.lib.world.WorldObject.Listener;
 import ca.shu.ui.lib.world.activities.Fader;
 import ca.shu.ui.lib.world.piccolo.WorldObjectImpl;
 import ca.shu.ui.lib.world.piccolo.objects.BoundsHandle;
@@ -94,8 +95,8 @@ public class Photo extends ModelObject implements Interactable, Droppable, Searc
 		super(photoData);
 		this.photoWrapper = new PhotoWrapper();
 		addChild(photoWrapper);
-		photoWrapper.addPropertyChangeListener(EventType.BOUNDS_CHANGED, new EventListener() {
-			public void propertyChanged(EventType event) {
+		photoWrapper.addPropertyChangeListener(Property.BOUNDS_CHANGED, new Listener() {
+			public void propertyChanged(Property event) {
 				Photo.this.setBounds(photoWrapper.getBounds());
 			}
 		});
@@ -599,7 +600,7 @@ class CommentLoader implements Destroyable {
 	}
 }
 
-class CommentText extends Text implements EventListener {
+class CommentText extends Text implements Listener {
 	private static final Color[] COMMENT_COLORS = { Style.COLOR_LIGHT_BLUE,
 			Style.COLOR_LIGHT_GREEN, Style.COLOR_LIGHT_PURPLE };
 	private static final double COMMENT_WIDTH = 200;
@@ -609,7 +610,7 @@ class CommentText extends Text implements EventListener {
 	private PXEdge edgeToPhoto;
 
 	public CommentText(Photo target, Person author, String text) {
-		super(ChameleonUtil.processString(text, 50));
+		super(Util.truncateString(text, 50));
 		this.author = author;
 		this.target = target;
 		init();
@@ -640,8 +641,8 @@ class CommentText extends Text implements EventListener {
 			}
 
 		}
-		author.addPropertyChangeListener(EventType.GLOBAL_BOUNDS, this);
-		author.addPropertyChangeListener(EventType.REMOVED_FROM_WORLD, this);
+		author.addPropertyChangeListener(Property.GLOBAL_BOUNDS, this);
+		author.addPropertyChangeListener(Property.REMOVED_FROM_WORLD, this);
 
 		addChild(edgeHolder);
 		target.getPiccolo().addChild(0, edgeToPhoto);
@@ -658,15 +659,15 @@ class CommentText extends Text implements EventListener {
 	@Override
 	protected void prepareForDestroy() {
 		edgeToPhoto.destroy();
-		author.removePropertyChangeListener(EventType.REMOVED_FROM_WORLD, this);
-		author.removePropertyChangeListener(EventType.GLOBAL_BOUNDS, this);
+		author.removePropertyChangeListener(Property.REMOVED_FROM_WORLD, this);
+		author.removePropertyChangeListener(Property.GLOBAL_BOUNDS, this);
 		super.prepareForDestroy();
 	}
 
-	public void propertyChanged(EventType event) {
-		if (event == EventType.REMOVED_FROM_WORLD) {
+	public void propertyChanged(Property event) {
+		if (event == Property.REMOVED_FROM_WORLD) {
 			destroy();
-		} else if (event == EventType.GLOBAL_BOUNDS) {
+		} else if (event == Property.GLOBAL_BOUNDS) {
 			updatePosition();
 		}
 	}
@@ -727,7 +728,7 @@ class PhotoInfoBar implements ITooltipPart {
 		// addText(offsetX, Url);
 
 		if (photo.getDescription() != null) {
-			String noHTMLString = ChameleonUtil.processString(photo.getDescription(), 200);
+			String noHTMLString = Util.truncateString(photo.getDescription(), 200);
 			Text description = new Text(noHTMLString);
 
 			addText(0, description);
@@ -740,7 +741,7 @@ class PhotoInfoBar implements ITooltipPart {
 
 }
 
-class PhotoWrapper extends Wrapper implements EventListener {
+class PhotoWrapper extends Wrapper implements Listener {
 	static final double IMG_BORDER_PX = 50;
 
 	public PhotoWrapper() {
@@ -758,15 +759,15 @@ class PhotoWrapper extends Wrapper implements EventListener {
 	@Override
 	protected void packageChanged(WorldObject oldPackage) {
 		if (oldPackage != null) {
-			oldPackage.removePropertyChangeListener(EventType.BOUNDS_CHANGED, this);
+			oldPackage.removePropertyChangeListener(Property.BOUNDS_CHANGED, this);
 		}
 
 		getPackage().setOffset(IMG_BORDER_PX, IMG_BORDER_PX);
-		getPackage().addPropertyChangeListener(EventType.BOUNDS_CHANGED, this);
+		getPackage().addPropertyChangeListener(Property.BOUNDS_CHANGED, this);
 		resize();
 	}
 
-	public void propertyChanged(EventType event) {
+	public void propertyChanged(Property event) {
 		resize();
 	}
 

@@ -14,15 +14,14 @@ import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
 import ca.shu.ui.chameleon.adapters.flickr.PersonIcon;
-import ca.shu.ui.chameleon.util.ChameleonUtil;
 import ca.shu.ui.chameleon.world.ChameleonStyle;
 import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.objects.models.ModelObject;
+import ca.shu.ui.lib.util.Util;
 import ca.shu.ui.lib.util.menus.MenuBuilder;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
-import ca.shu.ui.lib.world.EventListener;
 import ca.shu.ui.lib.world.Interactable;
 import ca.shu.ui.lib.world.Searchable;
 import ca.shu.ui.lib.world.activities.Fader;
@@ -104,7 +103,7 @@ public class Person extends ModelObject implements Interactable, Searchable {
 
 			int count = 0;
 			for (Person friend : getFriends()) {
-				friends.addAction(new NavigateToFriendAction(ChameleonUtil.processString(friend
+				friends.addAction(new NavigateToFriendAction(Util.truncateString(friend
 						.getName(), 17), friend));
 				if (++count >= MAX_FRIENDS_TO_SHOW_IN_MENU) {
 					friends.addLabel("     " + (getFriends().size() - MAX_FRIENDS_TO_SHOW_IN_MENU)
@@ -196,8 +195,8 @@ public class Person extends ModelObject implements Interactable, Searchable {
 	public void init(IUser user) {
 		myIcon = new PersonIcon(user.getProfilePictureURL());
 		addChild(myIcon);
-		myIcon.addPropertyChangeListener(EventType.BOUNDS_CHANGED, new EventListener() {
-			public void propertyChanged(EventType event) {
+		myIcon.addPropertyChangeListener(Property.BOUNDS_CHANGED, new Listener() {
+			public void propertyChanged(Property event) {
 				setBounds(parentToLocal(getFullBounds()));
 			}
 		});

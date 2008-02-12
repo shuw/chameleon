@@ -6,10 +6,82 @@ Remove pictures from search term when dragged
 *******************************************
  Pri 0 - doing next
 *******************************************
+Heterogeneous objects: 
+	Try books from Amazon
+Transient focus: 
+	When focusing on an object, fade to gray objects not in focus, and stop them from moving
+
+
+
+Create dockable pane to manage objects
+
+Create InteractableObject as a parent class of ModelObject
+
+·         Create some debug code to ensure that layout vertice count is sane
+
+·         Comments
+
+o   CommentLoader should re-use code by SearchBox to attach comments
+
+o   Remove comment when person is dragged away
+
+o   Create attach metaphor in WorldObject
+
+·         Photos
+
+o   Double click action to get higher resolution
+
+·         Investigate sluggishness after search term has found a few photos
+
+o   Repro: Drag SearchTerm around while it is updating
+
+·         Do not zoom to objects from start menu, drop in center of world
+
+·         Don’t show warning when deleting objects (NeoGraphics might handle this differently)
+
+·         Documentation with screenshots and youtube video
+
+o   Readme
+
+·         Don’t show comments until profile picture is loaded
+
+·         Develop logo and icon, integrate into jar file
+
+ 
+
+·         Sorting algorithm for mutual friends, friends part
+
+·         Missing icon for ensemble
+
+·         Undo operation for layouts not working
+
+·         Enable save / load layouts
+
+·         Enabling elastic layout erases the vertice locks, need to reenable locks every time
+
+·         Cannot drag photos into windows
+
+·         Escape key should not exit full screen view
+
+·         Highlight relationships of person when clicked upon
+
+o   Find path between two people
+
+·         Default to high rendering quality
+
+·         Reduce vibrations in animation
+
+·         Rotation of person causes it’s photo’s to rotate as well.
+
+o   Overide setRotation to only rotate the person icon
+
+·         Create the idea of an “attached” object that does not inherit transformation but moves along with another object (attachTo())
+
+
 Improve force mass function
 Make searchterm anchorable
 
-
+Type Flickr SearchTerm queries inline
 
 Flickr friend loader needs to be attached to an object, it needs to be destroyed when object is destroyed.
 

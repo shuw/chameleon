@@ -11,15 +11,10 @@ import ca.shu.ui.chameleon.adapters.flickr.FlickrPhoto;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
 import ca.shu.ui.chameleon.util.ChameleonUtil;
 import ca.shu.ui.chameleon.util.DistanceListener;
-import ca.shu.ui.lib.util.Util;
-import ca.shu.ui.lib.world.Destroyable;
-import ca.shu.ui.lib.world.EventListener;
-import ca.shu.ui.lib.world.WorldObject;
 import ca.shu.ui.lib.world.activities.Fader;
 import ca.shu.ui.lib.world.elastic.ElasticEdge;
 import ca.shu.ui.lib.world.elastic.ElasticObject;
 import ca.shu.ui.lib.world.piccolo.primitives.Text;
-import ca.shu.ui.lib.world.piccolo.primitives.PXEdge.EdgeShape;
 
 public class SearchTerm extends ElasticObject {
 

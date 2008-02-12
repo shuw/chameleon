@@ -41,20 +41,6 @@ public class ChameleonUtil {
 		return new Point2D.Double(offsetX, offsetY);
 	}
 
-	public static String processString(String input, int maxLength) {
-		String noHTMLString = input.replaceAll("\\<.*?>", "");
-
-		if (maxLength < 3) {
-			maxLength = 3;
-		}
-
-		if (noHTMLString.length() > maxLength) {
-			noHTMLString = noHTMLString.substring(0, noHTMLString.length() - 3) + "...";
-
-		}
-		return noHTMLString;
-
-	}
 }
 
 class DestroyActivity extends PActivity {

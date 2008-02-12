@@ -51,7 +51,7 @@ public class Chameleon extends AppFrame {
 		}
 		myInstance = this;
 		(new HighQualityAction()).doAction();
-		getCanvas().getWorld().getGround().setElasticEnabled(true);
+		getUniverse().getWorld().getGround().setElasticEnabled(true);
 	}
 
 	@Override
