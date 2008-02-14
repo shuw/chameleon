@@ -37,7 +37,7 @@ public class SocialGround extends ElasticGround {
 
 		if (centerPos) {
 			person.setOffset(0, 0);
-			addObject(person, true);
+			addChildFancy(person, true);
 		} else {
 			addChild(person, 0);
 		}

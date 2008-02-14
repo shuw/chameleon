@@ -6,6 +6,9 @@ Remove pictures from search term when dragged
 *******************************************
  Pri 0 - doing next
 *******************************************
+Windows Live Spaces integration
+	Couple menus and popups with object interface (IPhoto)
+
 Heterogeneous objects: 
 	Try books from Amazon
 Transient focus: 
