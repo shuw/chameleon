@@ -14,8 +14,6 @@ Heterogeneous objects:
 Transient focus: 
 	When focusing on an object, fade to gray objects not in focus, and stop them from moving
 
-
-
 Create dockable pane to manage objects
 
 Create InteractableObject as a parent class of ModelObject

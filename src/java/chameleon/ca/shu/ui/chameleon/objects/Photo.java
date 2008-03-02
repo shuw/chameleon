@@ -28,6 +28,7 @@ import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.objects.models.ModelObject;
+import ca.shu.ui.lib.util.UIEnvironment;
 import ca.shu.ui.lib.util.Util;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
 import ca.shu.ui.lib.world.Destroyable;
@@ -531,7 +532,7 @@ class CommentLoader implements Destroyable {
 					.getCenterX(), photoTarget.getBounds().getMinY() - NEW_PERSON_DROP_DISTANCE));
 			person.setOffset(offset);
 
-			person.addActivity(new Fader(person, PERSON_COME_IN_MS, 1f));
+			UIEnvironment.getInstance().addActivity(new Fader(person, PERSON_COME_IN_MS, 1f));
 		}
 
 		/*

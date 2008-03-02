@@ -6,6 +6,7 @@ import java.util.Random;
 
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.objects.Person;
+import ca.shu.ui.lib.util.UIEnvironment;
 import ca.shu.ui.lib.util.Util;
 import ca.shu.ui.lib.world.WorldObject;
 import ca.shu.ui.lib.world.activities.Fader;
@@ -123,7 +124,7 @@ public class SocialGround extends ElasticGround {
 			personB.setOffset(xPos, yPos);
 			personB.setTransparency(0f);
 			Fader fader = new Fader(personB, 1000, 1f);
-			addActivity(fader);
+			UIEnvironment.getInstance().addActivity(fader);
 			addPerson(personB, false);
 		}
 

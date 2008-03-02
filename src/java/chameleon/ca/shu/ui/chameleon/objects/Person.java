@@ -19,6 +19,7 @@ import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.objects.models.ModelObject;
+import ca.shu.ui.lib.util.UIEnvironment;
 import ca.shu.ui.lib.util.Util;
 import ca.shu.ui.lib.util.menus.MenuBuilder;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
@@ -240,7 +241,7 @@ public class Person extends ModelObject implements Interactable, Searchable {
 				collage.animateToPosition(getBounds().getMaxX() + 5, collage.getOffset().getY(),
 						ChameleonStyle.MEDIUM_ANIMATION_MS);
 
-				addActivity(new Fader(collage, ChameleonStyle.MEDIUM_ANIMATION_MS, 1f));
+				UIEnvironment.getInstance().addActivity(new Fader(collage, ChameleonStyle.MEDIUM_ANIMATION_MS, 1f));
 
 				collageShadow = new RectangularEdge(this, collage);
 				addChild(collageShadow, 0);

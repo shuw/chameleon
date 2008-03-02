@@ -11,6 +11,7 @@ import ca.shu.ui.chameleon.adapters.flickr.FlickrPhoto;
 import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
 import ca.shu.ui.chameleon.util.ChameleonUtil;
 import ca.shu.ui.chameleon.util.DistanceListener;
+import ca.shu.ui.lib.util.UIEnvironment;
 import ca.shu.ui.lib.world.activities.Fader;
 import ca.shu.ui.lib.world.elastic.ElasticEdge;
 import ca.shu.ui.lib.world.elastic.ElasticObject;
@@ -97,7 +98,7 @@ public class SearchTerm extends ElasticObject {
 
 		getWorldLayer().addEdge(edge);
 		getWorldLayer().addChild(photo);
-		addActivity(fader);
+		UIEnvironment.getInstance().addActivity(fader);
 
 		photosAttached.add(photo);
 

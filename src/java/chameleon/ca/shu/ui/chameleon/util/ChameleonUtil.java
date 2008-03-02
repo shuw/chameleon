@@ -3,6 +3,7 @@ package ca.shu.ui.chameleon.util;
 import java.awt.geom.Point2D;
 import java.util.Random;
 
+import ca.shu.ui.lib.util.UIEnvironment;
 import ca.shu.ui.lib.world.WorldObject;
 import ca.shu.ui.lib.world.activities.Fader;
 import edu.umd.cs.piccolo.activities.PActivity;
@@ -17,8 +18,8 @@ public class ChameleonUtil {
 
 		destroyPerson.setStartTime(startTime + timeMs);
 
-		target.addActivity(destroyPerson);
-		target.addActivity(fadePerson);
+		UIEnvironment.getInstance().addActivity(destroyPerson);
+		UIEnvironment.getInstance().addActivity(fadePerson);
 	}
 
 	public static Point2D getRandomPointAroundObj(WorldObject obj) {

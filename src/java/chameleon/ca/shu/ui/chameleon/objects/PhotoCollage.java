@@ -13,6 +13,7 @@ import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.objects.models.ModelObject;
+import ca.shu.ui.lib.util.UIEnvironment;
 import ca.shu.ui.lib.util.UserMessages;
 import ca.shu.ui.lib.util.Util;
 import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
@@ -322,10 +323,10 @@ class CollageInner extends WorldObjectImpl {
 
 				// its moved off the screen
 				if (moveToY < 0) {
-					getPiccolo().addActivity(new Fader(photo, 1000, 0f));
+					UIEnvironment.getInstance().addActivity(new Fader(photo, 1000, 0f));
 					photo.animateToPosition(photo.getOffset().getX(),
 							photo.getOffset().getY() - 500, 1000);
-					getPiccolo().addActivity(new RemovePhoto(1000, photo));
+					UIEnvironment.getInstance().addActivity(new RemovePhoto(1000, photo));
 				}
 			}
 		}
@@ -388,7 +389,7 @@ class CollageInner extends WorldObjectImpl {
 				photo.setTransparency(0);
 				this.addChild(photo);
 				// photo.setTransparency(0);
-				addActivity(new Fader(photo, ADD_PHOTO_TIME_MS, 1f));
+				UIEnvironment.getInstance().addActivity(new Fader(photo, ADD_PHOTO_TIME_MS, 1f));
 			}
 
 			insertX += photo.getWidth();

@@ -102,7 +102,7 @@ public class Chameleon extends AppFrame {
 
 		Fader fader = new Fader(obj, 1000, 1f);
 		obj.animateToPositionScaleRotation(childLayoutX, childLayoutY, obj.getScale(), 0, 1000);
-		getWorld().getGround().addActivity(fader);
+		UIEnvironment.getInstance().addActivity(fader);
 
 		Rectangle2D bounds = obj.getParent().localToGlobal(obj.getFullBounds());
 		Rectangle2D finalBounds = new Rectangle2D.Double(bounds.getX(), bounds.getY()
