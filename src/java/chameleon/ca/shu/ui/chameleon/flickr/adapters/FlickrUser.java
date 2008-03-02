@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import ca.shu.ui.chameleon.adapters.IUser;
+import ca.shu.ui.chameleon.flickr.FlickrAPI;
 
 import com.aetrion.flickr.contacts.OnlineStatus;
 import com.aetrion.flickr.people.User;

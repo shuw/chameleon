@@ -13,6 +13,7 @@ import org.xml.sax.SAXException;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IStreamingSourceException;
 import ca.shu.ui.chameleon.adapters.SourceEmptyException;
+import ca.shu.ui.chameleon.flickr.FlickrAPI;
 import ca.shu.ui.lib.util.Util;
 
 import com.aetrion.flickr.Flickr;

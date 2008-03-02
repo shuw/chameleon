@@ -1,4 +1,4 @@
-package ca.shu.ui.chameleon.flickr.adapters;
+package ca.shu.ui.chameleon.flickr;
 
 import java.net.MalformedURLException;
 import java.net.URL;

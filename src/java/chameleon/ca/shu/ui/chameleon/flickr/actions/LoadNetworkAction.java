@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import org.xml.sax.SAXException;
 
+import ca.shu.ui.chameleon.flickr.FlickrAPI;
 import ca.shu.ui.chameleon.flickr.FlickrDialogs;
-import ca.shu.ui.chameleon.flickr.adapters.FlickrAPI;
 import ca.shu.ui.chameleon.flickr.adapters.FlickrUser;
 import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.chameleon.world.SocialGround;

@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import ca.shu.ui.chameleon.adapters.IPhoto;
+import ca.shu.ui.chameleon.flickr.FlickrAPI;
 
 import com.aetrion.flickr.Flickr;
 import com.aetrion.flickr.FlickrException;

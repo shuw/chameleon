@@ -65,30 +65,6 @@ public class Chameleon extends AppFrame {
 
 	}
 
-	class StartSpaceWalk extends StandardAction {
-
-		private static final long serialVersionUID = 1L;
-
-		public StartSpaceWalk(String description) {
-			super(description);
-		}
-
-		@Override
-		protected void action() throws ActionException {
-			try {
-				String userName = SpaceWalkDialogs.askUserAlias();
-
-				FlickrPhotoSource source = FlickrPhotoSource
-						.createUserSource(userName);
-				openPhotoSource(source);
-
-			} catch (DialogException e) {
-				throw new UserCancelledException();
-			}
-		}
-
-	}
-
 	class SearchPhotos extends StandardAction {
 
 		private static final long serialVersionUID = 1L;

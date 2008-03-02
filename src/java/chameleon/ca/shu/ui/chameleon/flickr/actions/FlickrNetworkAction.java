@@ -9,7 +9,7 @@ import org.xml.sax.SAXException;
 import ca.shu.ui.chameleon.actions.NetworkAction;
 import ca.shu.ui.chameleon.adapters.IAsyncNetworkLoader;
 import ca.shu.ui.chameleon.adapters.IUser;
-import ca.shu.ui.chameleon.flickr.adapters.FlickrAPI;
+import ca.shu.ui.chameleon.flickr.FlickrAPI;
 import ca.shu.ui.chameleon.flickr.adapters.FlickrNetworkLoader;
 import ca.shu.ui.chameleon.flickr.adapters.FlickrUser;
 import ca.shu.ui.chameleon.objects.Person;

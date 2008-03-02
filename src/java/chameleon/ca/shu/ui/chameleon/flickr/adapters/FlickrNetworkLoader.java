@@ -10,6 +10,7 @@ import org.xml.sax.SAXException;
 
 import ca.shu.ui.chameleon.adapters.IAsyncNetworkLoader;
 import ca.shu.ui.chameleon.adapters.INetworkListener;
+import ca.shu.ui.chameleon.flickr.FlickrAPI;
 import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.lib.objects.activities.TrackedStatusMsg;
 
