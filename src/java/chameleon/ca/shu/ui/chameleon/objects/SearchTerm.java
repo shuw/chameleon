@@ -7,8 +7,8 @@ import javax.swing.SwingUtilities;
 
 import ca.shu.ui.chameleon.adapters.IStreamingSourceException;
 import ca.shu.ui.chameleon.adapters.SourceEmptyException;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrPhoto;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrPhotoSource;
+import ca.shu.ui.chameleon.flickr.adapters.FlickrPhoto;
+import ca.shu.ui.chameleon.flickr.adapters.FlickrPhotoSource;
 import ca.shu.ui.chameleon.util.ChameleonUtil;
 import ca.shu.ui.chameleon.util.DistanceListener;
 import ca.shu.ui.lib.util.UIEnvironment;

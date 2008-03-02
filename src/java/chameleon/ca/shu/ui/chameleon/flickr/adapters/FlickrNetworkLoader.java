@@ -1,4 +1,4 @@
-package ca.shu.ui.chameleon.adapters.flickr;
+package ca.shu.ui.chameleon.flickr.adapters;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;

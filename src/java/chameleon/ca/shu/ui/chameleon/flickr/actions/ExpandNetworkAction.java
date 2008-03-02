@@ -1,8 +1,8 @@
-package ca.shu.ui.chameleon.actions.flickr;
+package ca.shu.ui.chameleon.flickr.actions;
 
 import java.security.InvalidParameterException;
 
-import ca.shu.ui.chameleon.adapters.flickr.FlickrUser;
+import ca.shu.ui.chameleon.flickr.adapters.FlickrUser;
 import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.actions.ActionException;

@@ -1,4 +1,4 @@
-package ca.shu.ui.chameleon.actions.flickr;
+package ca.shu.ui.chameleon.flickr.actions;
 
 import java.io.IOException;
 
@@ -9,9 +9,9 @@ import org.xml.sax.SAXException;
 import ca.shu.ui.chameleon.actions.NetworkAction;
 import ca.shu.ui.chameleon.adapters.IAsyncNetworkLoader;
 import ca.shu.ui.chameleon.adapters.IUser;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrAPI;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrNetworkLoader;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrUser;
+import ca.shu.ui.chameleon.flickr.adapters.FlickrAPI;
+import ca.shu.ui.chameleon.flickr.adapters.FlickrNetworkLoader;
+import ca.shu.ui.chameleon.flickr.adapters.FlickrUser;
 import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.chameleon.world.SocialGround;
 

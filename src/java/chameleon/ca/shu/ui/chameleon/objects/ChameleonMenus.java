@@ -1,11 +1,11 @@
 package ca.shu.ui.chameleon.objects;
 
 import ca.shu.ui.chameleon.adapters.IChameleonObj;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs.FlickrDialogException;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;
 import ca.shu.ui.lib.actions.UserCancelledException;
+import ca.shu.ui.lib.util.UserMessages;
+import ca.shu.ui.lib.util.UserMessages.DialogException;
 import ca.shu.ui.lib.util.menus.AbstractMenuBuilder;
 import ca.shu.ui.lib.world.elastic.ElasticObject;
 import edu.stanford.ejalbert.BrowserLauncher;
@@ -18,12 +18,13 @@ public class ChameleonMenus {
 
 	private static final double SCALE_FACTOR = 1.5;
 
-	protected static void constructMenu(ElasticObject worldObj, AbstractMenuBuilder menu) {
+	protected static void constructMenu(ElasticObject worldObj,
+			AbstractMenuBuilder menu) {
 		constructMenu(worldObj, null, menu);
 	}
 
-	protected static void constructMenu(ElasticObject worldObj, IChameleonObj chamObj,
-			AbstractMenuBuilder menu) {
+	protected static void constructMenu(ElasticObject worldObj,
+			IChameleonObj chamObj, AbstractMenuBuilder menu) {
 		ChameleonMenus chameleonMenu = new ChameleonMenus(worldObj, chamObj);
 		chameleonMenu.constructMenu(menu);
 	}
@@ -83,19 +84,20 @@ public class ChameleonMenus {
 		@Override
 		protected void action() throws ActionException {
 			try {
-				String response = FlickrDialogs
+				String response = UserMessages
 						.askDialog("Please enter number the degrees to rotate");
 
 				try {
 					double degrees = Double.parseDouble(response);
 
-					worldObj.setRotation(worldObj.getRotation() + ((degrees * Math.PI) / 180f));
+					worldObj.setRotation(worldObj.getRotation()
+							+ ((degrees * Math.PI) / 180f));
 
 				} catch (NumberFormatException e) {
 					throw new ActionException("Invalid number");
 				}
 
-			} catch (FlickrDialogException e) {
+			} catch (DialogException e) {
 				throw new UserCancelledException();
 			}
 
@@ -122,8 +124,9 @@ public class ChameleonMenus {
 			} else {
 				scale /= SCALE_FACTOR;
 			}
-			worldObj.animateToPositionScaleRotation(worldObj.getOffset().getX(), worldObj
-					.getOffset().getY(), scale, worldObj.getRotation(), SCALE_DURATION_MS);
+			worldObj.animateToPositionScaleRotation(
+					worldObj.getOffset().getX(), worldObj.getOffset().getY(),
+					scale, worldObj.getRotation(), SCALE_DURATION_MS);
 
 		}
 	}

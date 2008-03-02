@@ -8,7 +8,7 @@ import ca.neo.ui.models.tooltips.TooltipBuilder;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IStreamingSourceException;
 import ca.shu.ui.chameleon.adapters.SourceEmptyException;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrPhoto;
+import ca.shu.ui.chameleon.flickr.adapters.FlickrPhoto;
 import ca.shu.ui.lib.Style.Style;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.StandardAction;

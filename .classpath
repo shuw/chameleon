@@ -4,7 +4,8 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/BrowserLauncher2-10rc4.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/simulator-ui"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/piccolo-1.2"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/flickrj"/>
+	<classpathentry kind="lib" path="lib/piccolo.jar"/>
+	<classpathentry kind="lib" path="lib/piccolox.jar"/>
+	<classpathentry kind="lib" path="lib/flickrapi-1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

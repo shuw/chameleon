@@ -1,17 +1,17 @@
-package ca.shu.ui.chameleon.actions.flickr;
+package ca.shu.ui.chameleon.flickr.actions;
 
 import java.io.IOException;
 
 import org.xml.sax.SAXException;
 
-import ca.shu.ui.chameleon.adapters.flickr.FlickrAPI;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrUser;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrDialogs.FlickrDialogException;
+import ca.shu.ui.chameleon.flickr.FlickrDialogs;
+import ca.shu.ui.chameleon.flickr.adapters.FlickrAPI;
+import ca.shu.ui.chameleon.flickr.adapters.FlickrUser;
 import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.actions.ActionException;
 import ca.shu.ui.lib.actions.UserCancelledException;
+import ca.shu.ui.lib.util.UserMessages.DialogException;
 
 import com.aetrion.flickr.FlickrException;
 import com.aetrion.flickr.people.User;
@@ -52,7 +52,7 @@ public class LoadNetworkAction extends FlickrNetworkAction {
 			myChameleon.addPerson(uiPerson);
 
 			return uiPerson;
-		} catch (FlickrDialogException e1) {
+		} catch (DialogException e1) {
 			throw new UserCancelledException();
 		} finally {
 		}

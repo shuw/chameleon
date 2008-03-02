@@ -2,8 +2,8 @@ package ca.shu.ui.chameleon.adapters;
 
 import java.util.Collection;
 
-import ca.shu.ui.chameleon.adapters.flickr.CrawlerState;
-import ca.shu.ui.chameleon.adapters.flickr.FlickrPhoto;
+import ca.shu.ui.chameleon.flickr.adapters.CrawlerState;
+import ca.shu.ui.chameleon.flickr.adapters.FlickrPhoto;
 
 public interface IStreamingPhotoSource {
 

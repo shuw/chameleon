@@ -11,7 +11,8 @@ import edu.umd.cs.piccolo.activities.PActivity;
 public class ChameleonUtil {
 	private static Random randomGen = new Random();
 
-	public static void FadeAndDestroy(WorldObject target, long startTime, long timeMs) {
+	public static void FadeAndDestroy(WorldObject target, long startTime,
+			long timeMs) {
 		PActivity destroyPerson = new DestroyActivity(target);
 		Fader fadePerson = new Fader(target, timeMs, 0f);
 		fadePerson.setStartTime(startTime);
@@ -30,7 +31,8 @@ public class ChameleonUtil {
 		return getRandomPointAroundObj(obj, radius);
 	}
 
-	public static Point2D getRandomPointAroundObj(WorldObject obj, double averageRadius) {
+	public static Point2D getRandomPointAroundObj(WorldObject obj,
+			double averageRadius) {
 
 		double randomAngle = randomGen.nextDouble() * 2d * Math.PI;
 		double randomOffset = ((randomGen.nextDouble() - 0.5d) * 0.2d) + 1d;
