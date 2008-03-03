@@ -349,7 +349,7 @@ class SearchSource extends FlickrPhotoSource {
 		super();
 		this.searchterm = searchterm;
 		searchParam = new SearchParameters();
-		searchParam.setSort(SearchParameters.INTERESTINGNESS_DESC);
+		searchParam.setSort(SearchParameters.RELEVANCE);
 		searchParam.setText(searchterm);
 
 	}
