@@ -149,7 +149,7 @@ class OpenURL extends StandardAction {
 		BrowserLauncher browserLauncher;
 		try {
 			browserLauncher = new BrowserLauncher(null);
-			browserLauncher.openURLinBrowser(chamObj.getUrl().toString());
+			browserLauncher.openURLinBrowser(chamObj.getURL().toString());
 		} catch (BrowserLaunchingInitializingException e) {
 			e.printStackTrace();
 		} catch (UnsupportedOperatingSystemException e) {

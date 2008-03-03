@@ -48,8 +48,7 @@ public class LoadNetworkAction extends FlickrNetworkAction {
 				throw new ActionException(e.getMessage());
 			}
 
-			Person uiPerson = new Person(user);
-			myChameleon.addPerson(uiPerson);
+			Person uiPerson = socialGround.addPerson(user);
 
 			return uiPerson;
 		} catch (DialogException e1) {

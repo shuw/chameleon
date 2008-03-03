@@ -31,6 +31,17 @@ public class ChameleonUtil {
 		return getRandomPointAroundObj(obj, radius);
 	}
 
+	public static void setOffsetAroundOrigin(WorldObject origin,
+			WorldObject target, double averageRadius) {
+		Point2D random = getRandomPointAroundObj(origin, averageRadius);
+
+		Point2D position = new Point2D.Double(origin.getOffset().getX()
+				+ random.getX(), origin.getOffset().getY() + random.getY());
+
+		target.setOffset(position);
+
+	}
+
 	public static Point2D getRandomPointAroundObj(WorldObject obj,
 			double averageRadius) {
 

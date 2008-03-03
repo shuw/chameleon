@@ -205,7 +205,7 @@ public class FlickrPhoto implements IPhoto, java.io.Serializable {
 		return sizes;
 	}
 
-	public URL getUrl() {
+	public URL getURL() {
 		try {
 			return new URL(getPhoto().getUrl());
 		} catch (Exception e) {

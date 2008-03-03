@@ -1,8 +1,10 @@
 package ca.shu.ui.chameleon.adapters;
 
 import java.net.URL;
+import java.util.Collection;
 
-import com.aetrion.flickr.contacts.OnlineStatus;
+import ca.neo.ui.models.tooltips.TooltipBuilder;
+import ca.shu.ui.lib.world.Searchable.SearchValuePair;
 
 public interface IUser extends IChameleonObj {
 
@@ -10,13 +12,10 @@ public interface IUser extends IChameleonObj {
 
 	public URL getProfilePictureURL();
 
-	public String getRealName();
+	public String getDisplayName();
 
-	public String getUserName();
+	public Collection<SearchValuePair> getSearchableValues();
 
-	public String getAwayMessage();
-
-	public String getLocation();
-
-	public OnlineStatus getOnline();
+	public void constructTooltips(TooltipBuilder builder);
+	
 }

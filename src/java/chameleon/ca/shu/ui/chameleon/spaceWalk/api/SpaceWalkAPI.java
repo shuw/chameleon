@@ -1,9 +1,7 @@
 package ca.shu.ui.chameleon.spaceWalk.api;
 
-import java.security.InvalidParameterException;
-
-import ca.shu.ui.chameleon.exceptions.RescourceDoesNotExist;
 import msra_rankbase02.spacewalkv4.WebServiceSoap;
+import ca.shu.ui.chameleon.exceptions.RescourceDoesNotExist;
 
 public class SpaceWalkAPI {
 
@@ -27,6 +25,10 @@ public class SpaceWalkAPI {
 		}
 
 	}
+
+	public static void main(String[] args) throws Exception {
+		WhatsNewSession whatsNewSession = new WhatsNewSession("mike");
+		
+
+	}
 }
-
-

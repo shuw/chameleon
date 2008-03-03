@@ -1,11 +1,10 @@
 package ca.shu.ui.chameleon.flickr.actions;
 
-import java.security.InvalidParameterException;
-
 import ca.shu.ui.chameleon.flickr.adapters.FlickrUser;
 import ca.shu.ui.chameleon.objects.Person;
 import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.actions.ActionException;
+import ca.shu.ui.lib.util.Util;
 
 public class ExpandNetworkAction extends FlickrNetworkAction {
 
@@ -17,7 +16,8 @@ public class ExpandNetworkAction extends FlickrNetworkAction {
 			SocialGround chameleon, Person root) {
 		super(actionName, numOfDegrees, chameleon);
 		if (!(root.getModel() instanceof FlickrUser)) {
-			throw new InvalidParameterException();
+			Util
+					.debugMsg("ExpandNetworkAction cannot be applied to this object");
 		}
 		this.root = root;
 	}

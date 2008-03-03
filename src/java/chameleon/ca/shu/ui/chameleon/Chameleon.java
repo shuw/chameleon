@@ -9,7 +9,7 @@ import ca.shu.ui.chameleon.flickr.actions.LoadNetworkAction;
 import ca.shu.ui.chameleon.flickr.adapters.FlickrPhotoSource;
 import ca.shu.ui.chameleon.objects.PhotoCollage;
 import ca.shu.ui.chameleon.objects.SearchTerm;
-import ca.shu.ui.chameleon.spaceWalk.SpaceWalkDialogs;
+import ca.shu.ui.chameleon.spaceWalk.actions.StartSpaceWalk;
 import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.chameleon.world.WorldX;
 import ca.shu.ui.lib.AppFrame;
@@ -178,18 +178,20 @@ public class Chameleon extends AppFrame {
 
 	@Override
 	public void initFileMenu(MenuBuilder fileMenu) {
+		MenuBuilder flickrMenu = fileMenu.addSubMenu("Start Flickr");
+		fileMenu.addAction(new StartSpaceWalk("Start SpaceWalk",
+				getChameleonHolder()));
 
-		fileMenu.addAction(new SearchPhotos("Search photos"), KeyEvent.VK_S);
+		flickrMenu.addAction(new SearchPhotos("Search photos"), KeyEvent.VK_S);
 
-		fileMenu.addAction(new LoadNetworkAction("Open person", 2,
+		flickrMenu.addAction(new LoadNetworkAction("Open person", 2,
 				getChameleonHolder()), KeyEvent.VK_P);
 
-		fileMenu.addAction(new OpenUserPhotos("Open person's photos"),
+		flickrMenu.addAction(new OpenUserPhotos("Open person's photos"),
 				KeyEvent.VK_H);
 
-		fileMenu.addAction(
-				new OpenInterestingPhotos("Open interesting photos"),
-				KeyEvent.VK_I);
+		flickrMenu.addAction(new OpenInterestingPhotos(
+				"Open interesting photos"), KeyEvent.VK_I);
 
 	}
 

@@ -2,10 +2,10 @@ package ca.shu.ui.chameleon.world;
 
 import java.security.InvalidParameterException;
 import java.util.Hashtable;
-import java.util.Random;
 
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.objects.Person;
+import ca.shu.ui.chameleon.util.ChameleonUtil;
 import ca.shu.ui.lib.util.UIEnvironment;
 import ca.shu.ui.lib.util.Util;
 import ca.shu.ui.lib.world.WorldObject;
@@ -20,58 +20,42 @@ import ca.shu.ui.lib.world.elastic.ElasticGround;
  */
 public class SocialGround extends ElasticGround {
 
+	private static final long serialVersionUID = 1L;
+
+	private Hashtable<String, Person> personTable = new Hashtable<String, Person>();
+
 	public SocialGround() {
 		super();
 
 		setElasticEnabled(true);
 	}
 
-	private static final long serialVersionUID = 1L;
-
-	private Hashtable<String, Person> personTable = new Hashtable<String, Person>();
-
-	public void addPerson(Person person) {
-		addPerson(person, true);
-	}
-
-	private void addPerson(Person person, boolean centerPos) {
-
-		if (centerPos) {
-			person.setOffset(0, 0);
-			addChildFancy(person, true);
-		} else {
-			addChild(person, 0);
-		}
-	}
-
-	@Override
-	public void childRemoved(WorldObject wo) {
-		if (wo instanceof Person) {
-			Person person = (Person) wo;
-
-			personTable.remove(person.getId());
-		}
-
-		super.childRemoved(wo);
-	}
-
-	@Override
-	public void childAdded(WorldObject wo) {
-		if (wo instanceof Person) {
-			Person person = (Person) wo;
-
-			if (personTable.get(person.getId()) != null) {
-				throw new InvalidParameterException();
-			}
-			personTable.put(person.getId(), person);
-		}
-
-		super.childAdded(wo);
-	}
-
 	@Override
 	public void addChild(WorldObject wo, int index) {
 		super.addChild(wo, index);
+	}
+
+	public boolean addMutualRelationship(IUser userA, IUser userB) {
+
+		Person personA = addPerson(userA);
+
+		Person personB = getPerson(userB.getId());
+		if (personB == null) {
+			personB = addPerson(userB, false);
+
+			// If this is a new person being created, we move it to the
+			// person
+			// it was related to
+
+			ChameleonUtil.setOffsetAroundOrigin(personA, personB, 50);
+
+			personB.setTransparency(0f);
+			Fader fader = new Fader(personB, 1000, 1f);
+			UIEnvironment.getInstance().addActivity(fader);
+		}
+
+		return addMutualRelationship(personA, personB);
+
 	}
 
 	public boolean addMutualRelationship(Person userA, Person userB) {
@@ -91,8 +75,9 @@ public class SocialGround extends ElasticGround {
 			userB.addFriend(userA);
 		}
 
-		Util.Assert(userAAlreadyFriendOfB == userBAlreadyFriendOfA,
-				"Relationship table inconsistent, only mutual relationships supported");
+		Util
+				.Assert(userAAlreadyFriendOfB == userBAlreadyFriendOfA,
+						"Relationship table inconsistent, only mutual relationships supported");
 
 		if (!userAAlreadyFriendOfB) {
 			/*
@@ -104,31 +89,51 @@ public class SocialGround extends ElasticGround {
 		return true;
 	}
 
-	public boolean addMutualRelationship(IUser userA, IUser userB) {
-		Person personA = getPerson(userA.getId());
-		if (personA == null) {
-			personA = new Person(userA);
-			addPerson(personA);
-		}
-		Person personB = getPerson(userB.getId());
-		if (personB == null) {
-			personB = new Person(userB);
+	public Person addPerson(IUser user) {
+		return addPerson(user, true);
+	}
 
-			// If this is a new person being created, we move it to the person
-			// it was related to
-
-			Random rand = new Random();
-			double xPos = personA.getOffset().getX() + (50 * (rand.nextDouble() - 0.5));
-			double yPos = personA.getOffset().getY() + (50 * (rand.nextDouble() - 0.5));
-
-			personB.setOffset(xPos, yPos);
-			personB.setTransparency(0f);
-			Fader fader = new Fader(personB, 1000, 1f);
-			UIEnvironment.getInstance().addActivity(fader);
-			addPerson(personB, false);
+	private Person addPerson(IUser user, boolean centerPos) {
+		Person person = personTable.get(user.getId());
+		if (person == null) {
+			person = new Person(user);
+		} else {
+			return person;
 		}
 
-		return addMutualRelationship(personA, personB);
+		if (centerPos) {
+			person.setOffset(0, 0);
+			addChildFancy(person, true);
+		} else {
+
+			addChild(person, 0);
+		}
+		return person;
+	}
+
+	@Override
+	public void childAdded(WorldObject wo) {
+		if (wo instanceof Person) {
+			Person person = (Person) wo;
+
+			if (personTable.get(person.getId()) != null) {
+				throw new InvalidParameterException();
+			}
+			personTable.put(person.getId(), person);
+		}
+
+		super.childAdded(wo);
+	}
+
+	@Override
+	public void childRemoved(WorldObject wo) {
+		if (wo instanceof Person) {
+			Person person = (Person) wo;
+
+			personTable.remove(person.getId());
+		}
+
+		super.childRemoved(wo);
 	}
 
 	public Person getPerson(String id) {

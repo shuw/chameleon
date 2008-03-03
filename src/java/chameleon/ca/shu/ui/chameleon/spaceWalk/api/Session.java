@@ -6,7 +6,7 @@ import msra_rankbase02.spacewalkv4.WebServiceSoap;
 
 public class Session {
 	private final WebServiceSoap service;
-	private String sessionId;
+	private final String sessionId;
 
 	public Session(String sessionId) {
 		super();
@@ -20,6 +20,10 @@ public class Session {
 
 	public WebServiceSoap getService() {
 		return service;
+	}
+
+	public String getSessionId() {
+		return sessionId;
 	}
 
 }

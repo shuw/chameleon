@@ -151,6 +151,7 @@ Create a queue of network objects and close stale objects to open new ones
 *******************************************
  Pri 1 - doing Eventually
 *******************************************
+Make non-overlapping namespaces in SocialGround between services
 
 Add links to other services such as Facebook and Spaces what's new, all in one world
 	Associate via Email IDs

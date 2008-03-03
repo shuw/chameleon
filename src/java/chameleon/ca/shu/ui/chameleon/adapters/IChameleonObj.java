@@ -4,6 +4,6 @@ import java.net.URL;
 
 public interface IChameleonObj {
 
-	public URL getUrl();
+	public URL getURL();
 
 }

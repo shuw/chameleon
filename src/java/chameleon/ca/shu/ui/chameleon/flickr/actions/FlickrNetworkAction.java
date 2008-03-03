@@ -21,13 +21,13 @@ import com.aetrion.flickr.FlickrException;
 public abstract class FlickrNetworkAction extends NetworkAction {
 
 	private static final long serialVersionUID = 1L;
-	SocialGround myChameleon;
+	SocialGround socialGround;
 	private Flickr flickrAPI;
 
 	public FlickrNetworkAction(String actionName, int numOfDegrees, SocialGround chameleon) {
 		super(actionName, numOfDegrees);
 		flickrAPI = FlickrAPI.create();
-		this.myChameleon = chameleon;
+		this.socialGround = chameleon;
 	}
 
 	@Override
@@ -37,7 +37,7 @@ public abstract class FlickrNetworkAction extends NetworkAction {
 
 	private IUser getUser(String userId, boolean ensure) throws IOException, SAXException,
 			FlickrException {
-		Person person = myChameleon.getPerson(userId);
+		Person person = socialGround.getPerson(userId);
 
 		if (person == null) {
 			if (ensure) {
@@ -61,7 +61,7 @@ public abstract class FlickrNetworkAction extends NetworkAction {
 			IUser userB = getUser(userBId, create);
 
 			if (userA != null && userB != null) {
-				SwingUtilities.invokeAndWait(new AddRelationshipRunner(userA, userB, myChameleon));
+				SwingUtilities.invokeAndWait(new AddRelationshipRunner(userA, userB, socialGround));
 			}
 		} catch (FlickrException e) {
 			e.printStackTrace();

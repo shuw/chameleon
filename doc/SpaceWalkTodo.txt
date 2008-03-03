@@ -8,7 +8,11 @@
 Requests:
 	- need to return error if alias dosen't exist
 	- return PictureUrl of root
+	
+	- Delta for what's new?
 
+
+Add pawn logo for people without profile pics
 
 *******************************************
  Pri 1 - doing Eventually
