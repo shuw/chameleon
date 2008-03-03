@@ -75,9 +75,9 @@ public class SocialGround extends ElasticGround {
 			userB.addFriend(userA);
 		}
 
-		Util
-				.Assert(userAAlreadyFriendOfB == userBAlreadyFriendOfA,
-						"Relationship table inconsistent, only mutual relationships supported");
+//		Util
+//				.Assert(userAAlreadyFriendOfB == userBAlreadyFriendOfA,
+//						"Relationship table inconsistent, only mutual relationships supported");
 
 		if (!userAAlreadyFriendOfB) {
 			/*

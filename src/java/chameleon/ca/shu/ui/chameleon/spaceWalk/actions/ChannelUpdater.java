@@ -129,34 +129,35 @@ public class ChannelUpdater implements Runnable {
 	private Person ensureChannel(Channel channel, final SpaceUser siblingUser)
 			throws MalformedURLException {
 
+		String profileUrl = channel.getProfilePictureUrl();
+		if (profileUrl == null || "".equals(profileUrl)) {
+			profileUrl = "http://l.yimg.com/www.flickr.com/images/buddyicon.jpg";
+		}
+
 		final SpaceUser newUser = new SpaceUser(channel.getSpaceAlias(),
-				new URL(channel.getProfilePictureUrl()), new URL(channel
-						.getSpaceUrl()));
+				new URL(profileUrl), new URL(channel.getSpaceUrl()));
 
 		Person person = socialGround.getPerson(newUser.getId());
 
-		if (person == null) {
-
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					public void run() {
-						socialGround
-								.addMutualRelationship(siblingUser, newUser);
-					}
-				});
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
-				e.getTargetException().printStackTrace();
-			}
-
-			/*
-			 * Delay so we don't add new friends too quickly
-			 */
-			Util.sleep(500);
-
-			person = socialGround.getPerson(newUser.getId());
+		try {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				public void run() {
+					socialGround.addMutualRelationship(siblingUser, newUser);
+				}
+			});
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.getTargetException().printStackTrace();
 		}
+
+		/*
+		 * Delay so we don't add new friends too quickly
+		 */
+		Util.sleep(500);
+
+		person = socialGround.getPerson(newUser.getId());
+
 		return person;
 
 	}

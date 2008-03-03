@@ -34,7 +34,7 @@ public class FindRelatedItemsAction extends StandardAction {
 					item.getSessionId(), item.getId());
 
 			(new Thread(new ChannelUpdater(relatedItemsSession, ground,
-					rootUser, 20000), "Related item retriever")).start();
+					rootUser, 30000), "Related item retriever")).start();
 
 		} catch (RescourceDoesNotExist e) {
 			throw new ActionException(
