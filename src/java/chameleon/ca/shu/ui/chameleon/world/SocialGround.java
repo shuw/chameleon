@@ -47,7 +47,7 @@ public class SocialGround extends ElasticGround {
 			// person
 			// it was related to
 
-			ChameleonUtil.setOffsetAroundOrigin(personA, personB, 50);
+			ChameleonUtil.setOffsetAroundOrigin(personA, personB, 150);
 
 			personB.setTransparency(0f);
 			Fader fader = new Fader(personB, 1000, 1f);

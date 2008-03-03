@@ -5,8 +5,11 @@ import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.LinkedList;
 
 import ca.neo.ui.models.tooltips.TooltipBuilder;
+import ca.shu.ui.chameleon.adapters.IPersonItemInfo;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.flickr.actions.ExpandNetworkAction;
@@ -31,25 +34,73 @@ import ca.shu.ui.lib.world.piccolo.objects.Window.WindowState;
 
 public class Person extends ModelObject implements Interactable, Searchable {
 
+	class NavigateToFriendAction extends StandardAction {
+		private static final long serialVersionUID = 1L;
+
+		private Person friend;
+
+		public NavigateToFriendAction(String description, Person friend) {
+			super(description);
+			this.friend = friend;
+		}
+
+		@Override
+		protected void action() throws ActionException {
+			friend.getWorld().getSky().animateViewToCenterBounds(
+					friend.localToGlobal(friend.getBounds()), false, 1000);
+		}
+	}
+
+	class SetPhotosEnabledAction extends StandardAction {
+
+		private static final long serialVersionUID = 1L;
+		private boolean enabled;
+
+		public SetPhotosEnabledAction(String description, boolean enabled) {
+			super(description);
+			this.enabled = enabled;
+		}
+
+		@Override
+		protected void action() throws ActionException {
+			setPhotosEnabled(enabled);
+		}
+
+	}
+
+	class SetWindowEnabled extends StandardAction {
+		private static final long serialVersionUID = 1L;
+
+		private boolean enabled;
+
+		public SetWindowEnabled(String description, boolean enabled) {
+			super(description);
+			this.enabled = enabled;
+		}
+
+		@Override
+		protected void action() throws ActionException {
+			setWindowEnabled(enabled);
+		}
+
+	}
+
 	private static final long serialVersionUID = 1L;
 
 	private RectangularEdge collageShadow = null;
 
+	private HashSet<Person> friends;
+
+	private LinkedList<PersonItem> items;
+	private Hashtable<String, PersonItem> itemsTable;
+
+	public final int MAX_FRIENDS_TO_SHOW_IN_MENU = 20;
+
+	private PersonIcon myIcon;
+
 	private PhotoCollage myPhotoCollage = null;
 
 	private WeakReference<Window> windowRef = new WeakReference<Window>(null);
-
-	private HashSet<Person> friends;
-
-	public void addFriend(Person person) {
-		if (!friends.contains(person)) {
-			friends.add(person);
-		}
-	}
-
-	public boolean isFriend(Person person) {
-		return friends.contains(person);
-	}
 
 	public Person(IUser user) {
 		super(user);
@@ -57,15 +108,25 @@ public class Person extends ModelObject implements Interactable, Searchable {
 		init(user);
 	}
 
-	@Override
-	protected void constructTooltips(TooltipBuilder builder) {
-		super.constructTooltips(builder);
-
-		getModel().constructTooltips(builder);
-		builder.addProperty("Friends shown", "" + getFriends().size());
+	public void addFriend(Person person) {
+		if (!friends.contains(person)) {
+			friends.add(person);
+		}
 	}
 
-	public final int MAX_FRIENDS_TO_SHOW_IN_MENU = 20;
+	public PersonItem addItem(IPersonItemInfo info) {
+		PersonItem item = itemsTable.get(info.getId());
+		if (item == null) {
+			item = new PersonItem(info);
+
+			addChild(item);
+
+			itemsTable.put(info.getId(), item);
+			items.add(item);
+		}
+
+		return item;
+	}
 
 	@Override
 	protected void constructMenu(PopupMenuBuilder menu) {
@@ -111,20 +172,67 @@ public class Person extends ModelObject implements Interactable, Searchable {
 
 	}
 
-	class NavigateToFriendAction extends StandardAction {
-		private Person friend;
+	@Override
+	protected void constructTooltips(TooltipBuilder builder) {
+		super.constructTooltips(builder);
 
-		public NavigateToFriendAction(String description, Person friend) {
-			super(description);
-			this.friend = friend;
-		}
+		getModel().constructTooltips(builder);
+		builder.addProperty("Friends shown", "" + getFriends().size());
+	}
 
-		private static final long serialVersionUID = 1L;
+	public Collection<Person> getFriends() {
+		return Collections.unmodifiableCollection(friends);
+	}
 
-		@Override
-		protected void action() throws ActionException {
-			friend.getWorld().getSky().animateViewToCenterBounds(
-					friend.localToGlobal(friend.getBounds()), false, 1000);
+	public String getId() {
+		return getModel().getId();
+	}
+
+	public PersonItem getItem(String itemId) {
+		return itemsTable.get(itemId);
+
+	}
+
+	@Override
+	public IUser getModel() {
+		return (IUser) super.getModel();
+	}
+
+	@Override
+	public Collection<SearchValuePair> getSearchableValues() {
+		return getModel().getSearchableValues();
+	}
+
+	@Override
+	public String getTypeName() {
+		return "Flickr User";
+	}
+
+	private void init(IUser user) {
+		items = new LinkedList<PersonItem>();
+		itemsTable = new Hashtable<String, PersonItem>();
+		myIcon = new PersonIcon(user.getProfilePictureURL());
+		addChild(myIcon);
+		myIcon.addPropertyChangeListener(Property.BOUNDS_CHANGED,
+				new Listener() {
+					public void propertyChanged(Property event) {
+						setBounds(myIcon.getFullBounds());
+					}
+				});
+
+		setName(user.getDisplayName());
+
+	}
+
+	public boolean isFriend(Person person) {
+		return friends.contains(person);
+	}
+
+	public boolean isPhotosEnabled() {
+		if (myPhotoCollage != null && !myPhotoCollage.isDestroyed()) {
+			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -136,67 +244,15 @@ public class Person extends ModelObject implements Interactable, Searchable {
 		}
 	}
 
-	/**
-	 * @return Viewer Window
-	 */
-	protected void setWindowEnabled(boolean enabled) {
-
-		if (enabled) {
-			if (windowRef.get() == null || windowRef.get().isDestroyed()) {
-
-				ElasticWorld privateWorld = new PersonWorld(getName()
-						+ "'s World", getModel());
-
-				Window window = new Window(this, privateWorld);
-
-				getWorld().zoomToObject(window);
-				windowRef = new WeakReference<Window>(window);
-			} else if (windowRef.get() != null
-					&& windowRef.get().getWindowState() == WindowState.MINIMIZED) {
-				windowRef.get().restoreSavedWindow();
-			}
-		} else {
-			if (windowRef.get() != null) {
-				windowRef.get().destroy();
-			}
-		}
-	}
-
-	public String getId() {
-		return getModel().getId();
-	}
-
 	@Override
-	public IUser getModel() {
-		return (IUser) super.getModel();
-	}
+	public void layoutChildren() {
+		super.layoutChildren();
+		double itemPositionY = getHeight() + 5;
+		for (PersonItem item : items) {
 
-	@Override
-	public String getTypeName() {
-		return "Flickr User";
-	}
+			item.setOffset(new Point2D.Double(0, itemPositionY));
 
-	private PersonIcon myIcon;
-
-	public void init(IUser user) {
-		myIcon = new PersonIcon(user.getProfilePictureURL());
-		addChild(myIcon);
-		myIcon.addPropertyChangeListener(Property.BOUNDS_CHANGED,
-				new Listener() {
-					public void propertyChanged(Property event) {
-						setBounds(parentToLocal(getFullBounds()));
-					}
-				});
-
-		setName(user.getDisplayName());
-
-	}
-
-	public boolean isPhotosEnabled() {
-		if (myPhotoCollage != null && !myPhotoCollage.isDestroyed()) {
-			return true;
-		} else {
-			return false;
+			itemPositionY += item.getHeight() + 5;
 		}
 	}
 
@@ -239,47 +295,30 @@ public class Person extends ModelObject implements Interactable, Searchable {
 		}
 	}
 
-	class SetPhotosEnabledAction extends StandardAction {
+	/**
+	 * @return Viewer Window
+	 */
+	protected void setWindowEnabled(boolean enabled) {
 
-		private static final long serialVersionUID = 1L;
-		private boolean enabled;
+		if (enabled) {
+			if (windowRef.get() == null || windowRef.get().isDestroyed()) {
 
-		public SetPhotosEnabledAction(String description, boolean enabled) {
-			super(description);
-			this.enabled = enabled;
+				ElasticWorld privateWorld = new PersonWorld(getName()
+						+ "'s World", getModel());
+
+				Window window = new Window(this, privateWorld);
+
+				getWorld().zoomToObject(window);
+				windowRef = new WeakReference<Window>(window);
+			} else if (windowRef.get() != null
+					&& windowRef.get().getWindowState() == WindowState.MINIMIZED) {
+				windowRef.get().restoreSavedWindow();
+			}
+		} else {
+			if (windowRef.get() != null) {
+				windowRef.get().destroy();
+			}
 		}
-
-		@Override
-		protected void action() throws ActionException {
-			setPhotosEnabled(enabled);
-		}
-
-	}
-
-	class SetWindowEnabled extends StandardAction {
-		private static final long serialVersionUID = 1L;
-
-		private boolean enabled;
-
-		public SetWindowEnabled(String description, boolean enabled) {
-			super(description);
-			this.enabled = enabled;
-		}
-
-		@Override
-		protected void action() throws ActionException {
-			setWindowEnabled(enabled);
-		}
-
-	}
-
-	public Collection<Person> getFriends() {
-		return Collections.unmodifiableCollection(friends);
-	}
-
-	@Override
-	public Collection<SearchValuePair> getSearchableValues() {
-		return getModel().getSearchableValues();
 	}
 
 }

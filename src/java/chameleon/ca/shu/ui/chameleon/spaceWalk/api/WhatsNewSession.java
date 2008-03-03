@@ -11,8 +11,5 @@ public class WhatsNewSession extends Session {
 	public Channel getChannel() {
 		return getService().getWhatsNewItems(getSessionId(), 20);
 
-	}
-	
-
-	
+	}	
 }

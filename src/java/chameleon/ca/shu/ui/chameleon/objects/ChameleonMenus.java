@@ -7,6 +7,8 @@ import ca.shu.ui.lib.actions.UserCancelledException;
 import ca.shu.ui.lib.util.UserMessages;
 import ca.shu.ui.lib.util.UserMessages.DialogException;
 import ca.shu.ui.lib.util.menus.AbstractMenuBuilder;
+import ca.shu.ui.lib.world.WorldObject;
+import ca.shu.ui.lib.world.elastic.ElasticGround;
 import ca.shu.ui.lib.world.elastic.ElasticObject;
 import edu.stanford.ejalbert.BrowserLauncher;
 import edu.stanford.ejalbert.exception.BrowserLaunchingExecutionException;
@@ -23,16 +25,16 @@ public class ChameleonMenus {
 		constructMenu(worldObj, null, menu);
 	}
 
-	protected static void constructMenu(ElasticObject worldObj,
+	protected static void constructMenu(WorldObject worldObj,
 			IChameleonObj chamObj, AbstractMenuBuilder menu) {
 		ChameleonMenus chameleonMenu = new ChameleonMenus(worldObj, chamObj);
 		chameleonMenu.constructMenu(menu);
 	}
 
 	private IChameleonObj chameleonObj;
-	private ElasticObject worldObj;
+	private WorldObject worldObj;
 
-	public ChameleonMenus(ElasticObject worldObj, IChameleonObj chameleonObj) {
+	public ChameleonMenus(WorldObject worldObj, IChameleonObj chameleonObj) {
 		super();
 		this.worldObj = worldObj;
 		this.chameleonObj = chameleonObj;
@@ -40,10 +42,16 @@ public class ChameleonMenus {
 
 	protected void constructMenu(AbstractMenuBuilder menu) {
 
-		if (!worldObj.isAnchored()) {
-			menu.addAction(new AnchorPosition("Anchor position", true));
-		} else {
-			menu.addAction(new AnchorPosition("Unanchor position", false));
+		if (worldObj instanceof ElasticObject) {
+			ElasticObject elasticObj = (ElasticObject) worldObj;
+
+			if (!elasticObj.isAnchored()) {
+				menu.addAction(new AnchorPosition("Anchor position", true));
+			} else {
+				menu.addAction(new AnchorPosition("Unanchor position", false));
+			}
+			menu.addAction(new ChangeEdgesAction("Push away related", 200d));
+			menu.addAction(new ChangeEdgesAction("Pull in related", -200d));
 		}
 
 		AbstractMenuBuilder objectMenu = menu.addSubMenu("Transform");
@@ -54,6 +62,26 @@ public class ChameleonMenus {
 		if (chameleonObj != null) {
 			menu.addAction(new OpenURL("Open in browser", chameleonObj));
 		}
+	}
+
+	class ChangeEdgesAction extends StandardAction {
+		private double delta;
+
+		public ChangeEdgesAction(String description, double delta) {
+			super(description);
+			this.delta = delta;
+		}
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected void action() throws ActionException {
+			ElasticObject elasticObj = ((ElasticObject) worldObj);
+
+			((ElasticGround) elasticObj.getWorldLayer()).modifyEdgeDistances(
+					elasticObj, delta);
+		}
+
 	}
 
 	class AnchorPosition extends StandardAction {
@@ -68,7 +96,7 @@ public class ChameleonMenus {
 
 		@Override
 		protected void action() throws ActionException {
-			worldObj.setAnchored(enabled);
+			((ElasticObject) worldObj).setAnchored(enabled);
 		}
 
 	}

@@ -26,9 +26,4 @@ public class SpaceWalkAPI {
 
 	}
 
-	public static void main(String[] args) throws Exception {
-		WhatsNewSession whatsNewSession = new WhatsNewSession("mike");
-		
-
-	}
 }
