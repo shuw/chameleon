@@ -9,6 +9,9 @@ Remove pictures from search term when dragged
 *******************************************
  Pri 0 - doing next
 *******************************************
+Catch media tracker failed to load exception in PersonIcon
+
+
 Windows Live Spaces integration
 	Couple menus and popups with object interface (IPhoto)
 

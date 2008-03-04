@@ -12,7 +12,7 @@ Requests:
 	- Delta for what's new?
 
 
-Add pawn logo for people without profile pics
+Layout relationships in a increasing radius concentric circle
 
 *******************************************
  Pri 1 - doing Eventually
