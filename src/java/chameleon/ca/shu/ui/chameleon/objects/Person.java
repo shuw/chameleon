@@ -139,8 +139,7 @@ public class Person extends ModelObject implements Interactable, Searchable {
 			friends.addSection("Find more");
 			if (getWorldLayer() instanceof SocialGround) {
 				SocialGround ground = (SocialGround) getWorldLayer();
-				friends.addAction(new ExpandNetworkAction("In current window",
-						2, ground, this));
+				friends.addAction(new ExpandNetworkAction("In current window", 2, ground, this));
 			}
 			if (!isWindowEnabled()) {
 				friends.addAction(new SetWindowEnabled("In new window", true));
@@ -151,13 +150,11 @@ public class Person extends ModelObject implements Interactable, Searchable {
 
 			int count = 0;
 			for (Person friend : getFriends()) {
-				friends.addAction(new NavigateToFriendAction(Util
-						.truncateString(friend.getName(), 17), friend));
+				friends.addAction(new NavigateToFriendAction(Util.truncateString(friend.getName(),
+						17), friend));
 				if (++count >= MAX_FRIENDS_TO_SHOW_IN_MENU) {
-					friends
-							.addLabel("     "
-									+ (getFriends().size() - MAX_FRIENDS_TO_SHOW_IN_MENU)
-									+ " more...");
+					friends.addLabel("     " + (getFriends().size() - MAX_FRIENDS_TO_SHOW_IN_MENU)
+							+ " more...");
 					break;
 				}
 
@@ -198,7 +195,6 @@ public class Person extends ModelObject implements Interactable, Searchable {
 		return (IUser) super.getModel();
 	}
 
-	@Override
 	public Collection<SearchValuePair> getSearchableValues() {
 		return getModel().getSearchableValues();
 	}
@@ -213,12 +209,11 @@ public class Person extends ModelObject implements Interactable, Searchable {
 		itemsTable = new Hashtable<String, PersonItem>();
 		myIcon = new PersonIcon(user.getProfilePictureURL());
 		addChild(myIcon);
-		myIcon.addPropertyChangeListener(Property.BOUNDS_CHANGED,
-				new Listener() {
-					public void propertyChanged(Property event) {
-						setBounds(myIcon.getFullBounds());
-					}
-				});
+		myIcon.addPropertyChangeListener(Property.BOUNDS_CHANGED, new Listener() {
+			public void propertyChanged(Property event) {
+				setBounds(myIcon.getFullBounds());
+			}
+		});
 
 		setName(user.getDisplayName());
 
@@ -260,26 +255,23 @@ public class Person extends ModelObject implements Interactable, Searchable {
 		if (enabled) {
 			if (!isPhotosEnabled()) {
 
-				IStreamingPhotoSource flickrPhotos = FlickrPhotoSource
-						.createUserSource(getModel().getId(), true);
+				IStreamingPhotoSource flickrPhotos = FlickrPhotoSource.createUserSource(getModel()
+						.getId(), true);
 				PhotoCollage collage = new PhotoCollage(flickrPhotos);
 				myPhotoCollage = collage;
 				collage.setScale(0.5f);
 				collage.setTransparency(0f);
 				addChild(collage);
 
-				Point2D size = collage.localToParent(new Point2D.Double(collage
-						.getWidth(), collage.getHeight()));
+				Point2D size = collage.localToParent(new Point2D.Double(collage.getWidth(), collage
+						.getHeight()));
 
 				collage.setOffset(-size.getX() / 2d, -size.getY() / 2d);
-				collage
-						.animateToPosition(getBounds().getMaxX() + 5, collage
-								.getOffset().getY(),
-								ChameleonStyle.MEDIUM_ANIMATION_MS);
+				collage.animateToPosition(getBounds().getMaxX() + 5, collage.getOffset().getY(),
+						ChameleonStyle.MEDIUM_ANIMATION_MS);
 
 				UIEnvironment.getInstance().addActivity(
-						new Fader(collage, ChameleonStyle.MEDIUM_ANIMATION_MS,
-								1f));
+						new Fader(collage, ChameleonStyle.MEDIUM_ANIMATION_MS, 1f));
 
 				collageShadow = new RectangularEdge(this, collage);
 				addChild(collageShadow, 0);
@@ -303,8 +295,7 @@ public class Person extends ModelObject implements Interactable, Searchable {
 		if (enabled) {
 			if (windowRef.get() == null || windowRef.get().isDestroyed()) {
 
-				ElasticWorld privateWorld = new PersonWorld(getName()
-						+ "'s World", getModel());
+				ElasticWorld privateWorld = new PersonWorld(getName() + "'s World", getModel());
 
 				Window window = new Window(this, privateWorld);
 
@@ -335,8 +326,8 @@ class PersonWorld extends ElasticWorld {
 
 		Person person = getGround().addPerson(user);
 
-		StandardAction expandNetwork = new ExpandNetworkAction(
-				"Expanding network", 2, (SocialGround) getGround(), person);
+		StandardAction expandNetwork = new ExpandNetworkAction("Expanding network", 2,
+				(SocialGround) getGround(), person);
 
 		expandNetwork.doAction();
 	}

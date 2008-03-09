@@ -36,14 +36,12 @@ public class PersonItem extends Text implements Interactable {
 	public WorldObject getTooltip() {
 
 		TooltipBuilder tooltipBuilder = new TooltipBuilder(getName());
-		tooltipBuilder.addProperty("Contents", Util.truncateString(info
-				.getContents(), 400));
+		tooltipBuilder.addProperty("Contents", Util.truncateString(info.getContents(), 400));
 
 		return new Tooltip(tooltipBuilder);
 
 	}
 
-	@Override
 	public JPopupMenu getContextMenu() {
 
 		PopupMenuBuilder menu = new PopupMenuBuilder("Item");
@@ -69,8 +67,8 @@ public class PersonItem extends Text implements Interactable {
 		protected void action() throws ActionException {
 
 			IPersonItemInfo.UIContext context = new IPersonItemInfo.UIContext(
-					(SocialGround) getWorldLayer(), ((Person) getParent())
-							.getModel(), PersonItem.this);
+					(SocialGround) getWorldLayer(), ((Person) getParent()).getModel(),
+					PersonItem.this);
 			info.findRelatedItems(context);
 		}
 

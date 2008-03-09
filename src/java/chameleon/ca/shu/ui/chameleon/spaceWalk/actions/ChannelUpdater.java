@@ -23,8 +23,8 @@ public class ChannelUpdater implements Runnable {
 	private SocialGround socialGround;
 	private long runForTimeMS;
 
-	public ChannelUpdater(Session session, SocialGround ground,
-			SpaceUser rootUser, long runForTimeMS) {
+	public ChannelUpdater(Session session, SocialGround ground, SpaceUser rootUser,
+			long runForTimeMS) {
 		super();
 		this.session = session;
 		this.myUser = rootUser;
@@ -32,11 +32,9 @@ public class ChannelUpdater implements Runnable {
 		this.runForTimeMS = runForTimeMS;
 	}
 
-	@Override
 	public void run() {
 		SwingUtilities.invokeLater(new Runnable() {
 
-			@Override
 			public void run() {
 				socialGround.addPerson(myUser).setAnchored(true);
 			}
@@ -99,16 +97,15 @@ public class ChannelUpdater implements Runnable {
 
 	private void ensureItem(final Person person, Item item) {
 		try {
-			final BlogItemInfo blogInfo = new BlogItemInfo(session
-					.getSessionId(), item.getItemId(), item.getItemTitle(),
-					item.getBlogContents(), new URL(item.getItemUrl()));
+			final BlogItemInfo blogInfo = new BlogItemInfo(session.getSessionId(),
+					item.getItemId(), item.getItemTitle(), item.getBlogContents(), new URL(item
+							.getItemUrl()));
 
 			final PersonItem personItem = person.getItem(blogInfo.getId());
 			if (personItem == null) {
 				try {
 					SwingUtilities.invokeAndWait(new Runnable() {
 
-						@Override
 						public void run() {
 							person.addItem(blogInfo);
 						}
@@ -134,8 +131,8 @@ public class ChannelUpdater implements Runnable {
 			profileUrl = "http://l.yimg.com/www.flickr.com/images/buddyicon.jpg";
 		}
 
-		final SpaceUser newUser = new SpaceUser(channel.getSpaceAlias(),
-				new URL(profileUrl), new URL(channel.getSpaceUrl()));
+		final SpaceUser newUser = new SpaceUser(channel.getSpaceAlias(), new URL(profileUrl),
+				new URL(channel.getSpaceUrl()));
 
 		Person person = socialGround.getPerson(newUser.getId());
 

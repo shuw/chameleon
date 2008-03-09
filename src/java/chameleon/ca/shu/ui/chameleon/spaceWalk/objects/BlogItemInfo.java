@@ -13,8 +13,7 @@ public class BlogItemInfo implements IPersonItemInfo {
 	URL url;
 	String sessionId;
 
-	public BlogItemInfo(String sessionId, String id, String title,
-			String contents, URL url) {
+	public BlogItemInfo(String sessionId, String id, String title, String contents, URL url) {
 		super();
 		this.sessionId = sessionId;
 		this.contents = contents;
@@ -23,30 +22,25 @@ public class BlogItemInfo implements IPersonItemInfo {
 		this.title = title;
 	}
 
-	@Override
 	public String getContents() {
 		return contents;
 	}
 
-	@Override
 	public String getId() {
 		return id;
 	}
 
-	@Override
 	public URL getURL() {
 		return url;
 	}
 
-	@Override
 	public String getTitle() {
 		return title;
 	}
 
-	@Override
 	public void findRelatedItems(UIContext context) {
-		(new FindRelatedItemsAction("Find Related Items", context.getGround(),
-				(SpaceUser) context.getUserParent(), this)).doAction();
+		(new FindRelatedItemsAction("Find Related Items", context.getGround(), (SpaceUser) context
+				.getUserParent(), this)).doAction();
 
 	}
 

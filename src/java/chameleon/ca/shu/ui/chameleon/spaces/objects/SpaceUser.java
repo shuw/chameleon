@@ -32,32 +32,26 @@ public class SpaceUser implements IUser {
 		this.searchableValues = new ArrayList<SearchValuePair>(sValues);
 	}
 
-	@Override
 	public String getId() {
 		return alias;
 	}
 
-	@Override
 	public URL getProfilePictureURL() {
 		return profilePictureUrl;
 	}
 
-	@Override
 	public String getDisplayName() {
 		return alias;
 	}
 
-	@Override
 	public URL getURL() {
 		return profileUrl;
 	}
 
-	@Override
 	public void constructTooltips(TooltipBuilder builder) {
 		// TODO: add tool tips
 	}
 
-	@Override
 	public Collection<SearchValuePair> getSearchableValues() {
 		return searchableValues;
 	}

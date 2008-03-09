@@ -42,7 +42,8 @@ public class StartSpaceWalk extends StandardAction {
 
 			whatsNew = SpaceWalkAPI.getWhatsNewSession(userAlias);
 		} catch (RescourceDoesNotExist e) {
-			throw new ActionException("Could not open what's new");
+			throw new ActionException(
+					"Could not connect to server. The server is hosted by Microsoft Research and is only available from some locations.");
 		}
 
 		final SpaceUser spaceUserFinal = spaceUser;
@@ -57,8 +58,7 @@ public class StartSpaceWalk extends StandardAction {
 		/*
 		 * Start the what's new retriever
 		 */
-		(new Thread(
-				new ChannelUpdater(whatsNew, socialGround, spaceUser, 15000),
+		(new Thread(new ChannelUpdater(whatsNew, socialGround, spaceUser, 15000),
 				"What's new retriever")).start();
 	}
 

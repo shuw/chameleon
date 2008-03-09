@@ -3,8 +3,10 @@ package ca.shu.ui.chameleon.objects;
 import java.awt.geom.Point2D;
 import java.util.LinkedList;
 
+import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
+import ca.neo.ui.actions.RemoveObjectAction;
 import ca.shu.ui.chameleon.adapters.IStreamingSourceException;
 import ca.shu.ui.chameleon.adapters.SourceEmptyException;
 import ca.shu.ui.chameleon.flickr.adapters.FlickrPhoto;
@@ -12,12 +14,14 @@ import ca.shu.ui.chameleon.flickr.adapters.FlickrPhotoSource;
 import ca.shu.ui.chameleon.util.ChameleonUtil;
 import ca.shu.ui.chameleon.util.DistanceListener;
 import ca.shu.ui.lib.util.UIEnvironment;
+import ca.shu.ui.lib.util.menus.PopupMenuBuilder;
+import ca.shu.ui.lib.world.Interactable;
 import ca.shu.ui.lib.world.activities.Fader;
 import ca.shu.ui.lib.world.elastic.ElasticEdge;
 import ca.shu.ui.lib.world.elastic.ElasticObject;
 import ca.shu.ui.lib.world.piccolo.primitives.Text;
 
-public class SearchTerm extends ElasticObject {
+public class SearchTerm extends ElasticObject implements Interactable {
 
 	private FlickrPhotoSource photoSource;
 	private Text myText;
@@ -125,7 +129,9 @@ public class SearchTerm extends ElasticObject {
 		}
 
 		public void run() {
-			addPhotoToWorld(photo);
+			if (!SearchTerm.this.isDestroyed()) {
+				addPhotoToWorld(photo);
+			}
 		}
 	}
 
@@ -134,7 +140,7 @@ public class SearchTerm extends ElasticObject {
 	private void loadPhotos() {
 
 		try {
-			while (true) {
+			while (!SearchTerm.this.isDestroyed()) {
 				FlickrPhoto photo = photoSource.getPhoto();
 				long startTime = System.currentTimeMillis();
 				Photo photoObj = new Photo(photo);
@@ -156,5 +162,19 @@ public class SearchTerm extends ElasticObject {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	protected void constructMenu(PopupMenuBuilder menu) {
+		menu.addAction(new RemoveObjectAction("Remove this", this));
+		ChameleonMenus.constructMenu(this, menu);
+	}
+
+	public JPopupMenu getContextMenu() {
+
+		PopupMenuBuilder menu = new PopupMenuBuilder("Model: " + getName());
+		constructMenu(menu);
+
+		return menu.toJPopupMenu();
+
 	}
 }

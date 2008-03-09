@@ -20,13 +20,12 @@ public class ChameleonMenus {
 
 	private static final double SCALE_FACTOR = 1.5;
 
-	protected static void constructMenu(ElasticObject worldObj,
-			AbstractMenuBuilder menu) {
+	protected static void constructMenu(ElasticObject worldObj, AbstractMenuBuilder menu) {
 		constructMenu(worldObj, null, menu);
 	}
 
-	protected static void constructMenu(WorldObject worldObj,
-			IChameleonObj chamObj, AbstractMenuBuilder menu) {
+	protected static void constructMenu(WorldObject worldObj, IChameleonObj chamObj,
+			AbstractMenuBuilder menu) {
 		ChameleonMenus chameleonMenu = new ChameleonMenus(worldObj, chamObj);
 		chameleonMenu.constructMenu(menu);
 	}
@@ -41,7 +40,6 @@ public class ChameleonMenus {
 	}
 
 	protected void constructMenu(AbstractMenuBuilder menu) {
-
 		if (worldObj instanceof ElasticObject) {
 			ElasticObject elasticObj = (ElasticObject) worldObj;
 
@@ -78,8 +76,7 @@ public class ChameleonMenus {
 		protected void action() throws ActionException {
 			ElasticObject elasticObj = ((ElasticObject) worldObj);
 
-			((ElasticGround) elasticObj.getWorldLayer()).modifyEdgeDistances(
-					elasticObj, delta);
+			((ElasticGround) elasticObj.getWorldLayer()).modifyEdgeDistances(elasticObj, delta);
 		}
 
 	}
@@ -118,8 +115,7 @@ public class ChameleonMenus {
 				try {
 					double degrees = Double.parseDouble(response);
 
-					worldObj.setRotation(worldObj.getRotation()
-							+ ((degrees * Math.PI) / 180f));
+					worldObj.setRotation(worldObj.getRotation() + ((degrees * Math.PI) / 180f));
 
 				} catch (NumberFormatException e) {
 					throw new ActionException("Invalid number");
@@ -152,9 +148,8 @@ public class ChameleonMenus {
 			} else {
 				scale /= SCALE_FACTOR;
 			}
-			worldObj.animateToPositionScaleRotation(
-					worldObj.getOffset().getX(), worldObj.getOffset().getY(),
-					scale, worldObj.getRotation(), SCALE_DURATION_MS);
+			worldObj.animateToPositionScaleRotation(worldObj.getOffset().getX(), worldObj
+					.getOffset().getY(), scale, worldObj.getRotation(), SCALE_DURATION_MS);
 
 		}
 	}
