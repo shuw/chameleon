@@ -2,8 +2,8 @@ package ca.shu.ui.chameleon.objects;
 
 import javax.swing.JPopupMenu;
 
-import ca.neo.ui.models.tooltips.Tooltip;
-import ca.neo.ui.models.tooltips.TooltipBuilder;
+import ca.nengo.ui.models.tooltips.Tooltip;
+import ca.nengo.ui.models.tooltips.TooltipBuilder;
 import ca.shu.ui.chameleon.adapters.IPersonItemInfo;
 import ca.shu.ui.chameleon.world.SocialGround;
 import ca.shu.ui.lib.actions.ActionException;

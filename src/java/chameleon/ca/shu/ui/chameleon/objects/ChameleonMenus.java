@@ -118,7 +118,7 @@ public class ChameleonMenus {
 					worldObj.setRotation(worldObj.getRotation() + ((degrees * Math.PI) / 180f));
 
 				} catch (NumberFormatException e) {
-					throw new ActionException("Invalid number");
+					throw new ActionException("Invalid number", e);
 				}
 
 			} catch (DialogException e) {

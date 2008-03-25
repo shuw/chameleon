@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import ca.neo.ui.models.tooltips.TooltipBuilder;
+import ca.nengo.ui.models.tooltips.TooltipBuilder;
 import ca.shu.ui.chameleon.adapters.IUser;
 import ca.shu.ui.chameleon.flickr.FlickrAPI;
 import ca.shu.ui.lib.world.Searchable.SearchValuePair;

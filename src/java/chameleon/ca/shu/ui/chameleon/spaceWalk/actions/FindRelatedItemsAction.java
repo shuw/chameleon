@@ -38,7 +38,7 @@ public class FindRelatedItemsAction extends StandardAction {
 
 		} catch (RescourceDoesNotExist e) {
 			throw new ActionException(
-					"Could not get related items because rescource was unavailable");
+					"Could not get related items because rescource was unavailable", e);
 		}
 
 	}

@@ -13,8 +13,8 @@ import java.util.Random;
 
 import javax.swing.SwingUtilities;
 
-import ca.neo.ui.models.tooltips.ITooltipPart;
-import ca.neo.ui.models.tooltips.TooltipBuilder;
+import ca.nengo.ui.models.tooltips.ITooltipPart;
+import ca.nengo.ui.models.tooltips.TooltipBuilder;
 import ca.shu.ui.chameleon.adapters.IPhoto;
 import ca.shu.ui.chameleon.flickr.FlickrAPI;
 import ca.shu.ui.chameleon.flickr.adapters.FileDownload;

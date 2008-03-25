@@ -43,9 +43,9 @@ public class LoadNetworkAction extends FlickrNetworkAction {
 				e.printStackTrace();
 				return null;
 			} catch (SAXException e) {
-				throw new ActionException("Site down: " + e.getMessage());
+				throw new ActionException("Site down: " + e.getMessage(), e);
 			} catch (FlickrException e) {
-				throw new ActionException(e.getMessage());
+				throw new ActionException(e.getMessage(), e);
 			}
 
 			Person uiPerson = socialGround.addPerson(user);

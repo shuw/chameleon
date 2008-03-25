@@ -43,7 +43,7 @@ public class StartSpaceWalk extends StandardAction {
 			whatsNew = SpaceWalkAPI.getWhatsNewSession(userAlias);
 		} catch (RescourceDoesNotExist e) {
 			throw new ActionException(
-					"Could not connect to server. The server is hosted by Microsoft Research and is only available from some locations.");
+					"Could not connect to server. The Space Walk server is in Beta and is only available from some locations.", e);
 		}
 
 		final SpaceUser spaceUserFinal = spaceUser;

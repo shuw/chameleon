@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 
-import ca.neo.ui.models.tooltips.TooltipBuilder;
+import ca.nengo.ui.models.tooltips.TooltipBuilder;
 import ca.shu.ui.chameleon.adapters.IPersonItemInfo;
 import ca.shu.ui.chameleon.adapters.IStreamingPhotoSource;
 import ca.shu.ui.chameleon.adapters.IUser;

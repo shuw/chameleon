@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
-import ca.neo.ui.actions.RemoveObjectAction;
+import ca.nengo.ui.actions.RemoveObjectAction;
 import ca.shu.ui.chameleon.adapters.IStreamingSourceException;
 import ca.shu.ui.chameleon.adapters.SourceEmptyException;
 import ca.shu.ui.chameleon.flickr.adapters.FlickrPhoto;
